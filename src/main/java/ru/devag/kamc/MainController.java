@@ -12,7 +12,7 @@ public class MainController {
 
     @RequestMapping("/obj/count")
     public int index() {
-        //1
+        //2
         return jdbcTemplate.queryForObject("select count(1) from i3_object", Integer.class);
     }
 }
