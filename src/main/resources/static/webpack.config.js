@@ -28,7 +28,7 @@ module.exports = {
                                 {
                                     targets: {esmodules: true},
                                     /*useBuiltIns: "usage",*/
-                                    debug: true
+                                    debug: false
                                 }
                             ]
                         ],
@@ -81,7 +81,8 @@ module.exports = {
                 options: {
                     limit: 10000,
                     name: '[name].[ext]',
-                    useRelativePath: true
+                    publicPath: '/dist',
+                    useRelativePath: false
                 }
             }
         ]           

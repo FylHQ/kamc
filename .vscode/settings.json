@@ -4,10 +4,11 @@
         "commands": [
           {
             "match": "\\.(js|vue)$",
-            "cmd": "cd ${workspaceRoot}\\src\\main\\resources\\static ; npm run webpack",
+            "cmd": "cd ${workspaceRoot}/src/main/resources/static ; npm run webpack",
             "useShortcut": false,
             "silent": false
           }
         ]
-      }
+      },
+      "eslint.enable": false
 }
