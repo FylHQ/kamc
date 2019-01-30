@@ -1,0 +1,5 @@
+      :show-file-list="true"
+      :file-list="fileList"
+      :auto-upload="true"
+      :on-success="onSuccess"
+      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
