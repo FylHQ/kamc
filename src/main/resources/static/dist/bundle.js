@@ -1851,32 +1851,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'mainapp',
@@ -1914,32 +1888,6 @@ __webpack_require__.r(__webpack_exports__);
         type: "info"
       }); //console.log(response)
 
-    },
-
-    submitUpload() {
-      this.$refs.upload.submit();
-    },
-
-    onInput(file) {
-      const formData = new FormData();
-      formData.append('xlsx', file);
-      let self = this;
-      axios__WEBPACK_IMPORTED_MODULE_3___default()({
-        method: 'POST',
-        url: '/upload',
-        data: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(function (res) {
-        self.sheetInfo = res.data;
-        console.log(res.data);
-      });
-      /*axios.post('/upload', formData, {})
-        .then(function(response){
-          self.sheetInfo = response.data
-        })*/
-      //axios.post('/upload', value)
     },
 
     getCount() {
@@ -17040,13 +16988,12 @@ var render = function() {
       _c(
         "el-upload",
         {
-          ref: "upload",
           staticClass: "upload-demo",
           attrs: {
             action: "/upload",
+            name: "xlsx",
             limit: 1,
-            "on-success": _vm.onSuccess,
-            name: "xlsx"
+            "on-success": _vm.onSuccess
           }
         },
         [
@@ -17075,36 +17022,7 @@ var render = function() {
           )
         ],
         1
-      ),
-      _vm._v("\n\n  Проверка Oracle (число записей в i3_object)\n  "),
-      _c("el-button", { attrs: { plain: "" }, on: { click: _vm.getCount } }, [
-        _vm._v("Запрос")
-      ]),
-      _vm._v(" "),
-      _c(
-        "label",
-        [
-          _c("el-input", {
-            staticStyle: { width: "200px" },
-            attrs: {
-              placeholder: "Click button to count",
-              size: "default",
-              readonly: "",
-              maxlength: "20"
-            },
-            model: {
-              value: _vm.objCount,
-              callback: function($$v) {
-                _vm.objCount = $$v
-              },
-              expression: "objCount"
-            }
-          })
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c("pre", [_vm._v("  " + _vm._s(_vm.sheetInfo) + "\n  ")])
+      )
     ],
     1
   )

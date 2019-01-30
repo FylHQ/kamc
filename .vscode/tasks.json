@@ -21,7 +21,7 @@
         {
             "label": "gradle run",
             "type": "shell",
-            "command": "gradle run --args='--server=ora11g --sid=kamc'",
+            "command": "gradle run --debug-jvm --args='--server=localhost --sid=kamc'",
             "group": {
                 "kind": "build",
                 "isDefault": true

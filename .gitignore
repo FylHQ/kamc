@@ -30,3 +30,6 @@ package-lock.json
 gradlew.bat
 /gradle
 gradlew
+.vscode/tasks.json
+src/main/resources/static/dist/
+
