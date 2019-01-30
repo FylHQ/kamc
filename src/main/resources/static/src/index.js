@@ -1,17 +1,17 @@
 import Vue from 'vue'
 
-import Buefy from 'buefy'
+/*import Buefy from 'buefy'
 import "@fortawesome/fontawesome-free/css/all.css";
-import 'buefy/dist/buefy.css'
+import 'buefy/dist/buefy.css'*/
 
 /*import Vuetify from 'vuetify'
 Vue.use(Vuetify)
 import 'vuetify/dist/vuetify.min.css'*/
 
 
-Vue.use(Buefy, {
+/*Vue.use(Buefy, {
   defaultIconPack: 'fas'
-})
+})*/
 
 import { Button, Select, Option, Dialog, Input, Tabs, TabPane, Upload, Switch, Alert, Popover } from 'element-ui'
 import elementLang from 'element-ui/lib/locale/lang/en'

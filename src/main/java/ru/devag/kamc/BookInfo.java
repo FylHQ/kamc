@@ -18,7 +18,8 @@ public class BookInfo {
       while(sheetIt.hasNext()) {
           Sheet sheet = sheetIt.next();
           importSheet(sheet);
-          break;
+          if (sheets.size() == 5)
+            break;
       }
    }
 

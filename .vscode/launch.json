@@ -6,7 +6,7 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Debug",
+            "name": "Home",
             "request": "launch",
             "mainClass": "ru.devag.kamc.KamcApplication",
             "projectName": "web",

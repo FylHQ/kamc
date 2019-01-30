@@ -1843,6 +1843,40 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'mainapp',
@@ -1850,7 +1884,11 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       msg: 'Welcome to KAMC web server',
-      objCount: null
+      fileList: [],
+      objCount: null,
+      file: null,
+      isActive: false,
+      sheetInfo: ""
     };
   },
 
@@ -1867,10 +1905,48 @@ __webpack_require__.r(__webpack_exports__);
       console.log([1, 2].reduce((a, b) => a + b));
     },
 
+    onSuccess(response, file, fileList) {
+      this.sheetInfo = response;
+
+      element_ui_lib_notification__WEBPACK_IMPORTED_MODULE_2___default()({
+        title: "Загрузка",
+        message: "Показаны данные первого листа",
+        type: "info"
+      }); //console.log(response)
+
+    },
+
+    submitUpload() {
+      this.$refs.upload.submit();
+    },
+
+    onInput(file) {
+      const formData = new FormData();
+      formData.append('xlsx', file);
+      let self = this;
+      axios__WEBPACK_IMPORTED_MODULE_3___default()({
+        method: 'POST',
+        url: '/upload',
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(function (res) {
+        self.sheetInfo = res.data;
+        console.log(res.data);
+      });
+      /*axios.post('/upload', formData, {})
+        .then(function(response){
+          self.sheetInfo = response.data
+        })*/
+      //axios.post('/upload', value)
+    },
+
     getCount() {
       let self = this;
       axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/obj/count').then(result => {
         self.objCount = result.data;
+        self.isActive = true;
 
         element_ui_lib_notification__WEBPACK_IMPORTED_MODULE_2___default()({
           title: "Подсчет",
@@ -2171,7 +2247,7 @@ exports = module.exports = __webpack_require__(/*! ../node_modules/css-loader/li
 
 
 // module
-exports.push([module.i, ".count {\n  border: 1px solid blue;\n}\n", ""]);
+exports.push([module.i, ".el-upload-list__item-name {\n  height: fit-content;\n  padding: 10px;\n}\n.count {\n  border: 1px solid blue;\n}\n", ""]);
 
 // exports
 
@@ -11184,9 +11260,9 @@ if(false) {}
   !*** ./node_modules/element-ui/lib/theme-chalk/fonts/element-icons.ttf ***!
   \*************************************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-module.exports = __webpack_require__.p + "element-icons.ttf";
+module.exports = "/dist/element-icons.ttf";
 
 /***/ }),
 
@@ -16962,10 +17038,48 @@ var render = function() {
       _c("h1", [_vm._v(_vm._s(_vm.msg))]),
       _vm._v(" "),
       _c(
-        "el-button",
-        { attrs: { size: "small" }, on: { click: _vm.getCount } },
-        [_vm._v("Get obj count")]
+        "el-upload",
+        {
+          ref: "upload",
+          staticClass: "upload-demo",
+          attrs: {
+            action: "/upload",
+            limit: 1,
+            "on-success": _vm.onSuccess,
+            name: "xlsx"
+          }
+        },
+        [
+          _c(
+            "el-button",
+            {
+              attrs: {
+                slot: "trigger",
+                plain: "",
+                type: "primary",
+                icon: "el-icon-upload"
+              },
+              slot: "trigger"
+            },
+            [_vm._v("Загрузить файл")]
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              staticClass: "el-upload__tip",
+              attrs: { slot: "tip" },
+              slot: "tip"
+            },
+            [_vm._v("Выберите xlsx файл")]
+          )
+        ],
+        1
       ),
+      _vm._v("\n\n  Проверка Oracle (число записей в i3_object)\n  "),
+      _c("el-button", { attrs: { plain: "" }, on: { click: _vm.getCount } }, [
+        _vm._v("Запрос")
+      ]),
       _vm._v(" "),
       _c(
         "label",
@@ -16974,7 +17088,7 @@ var render = function() {
             staticStyle: { width: "200px" },
             attrs: {
               placeholder: "Click button to count",
-              size: "small",
+              size: "default",
               readonly: "",
               maxlength: "20"
             },
@@ -16988,7 +17102,9 @@ var render = function() {
           })
         ],
         1
-      )
+      ),
+      _vm._v(" "),
+      _c("pre", [_vm._v("  " + _vm._s(_vm.sheetInfo) + "\n  ")])
     ],
     1
   )
@@ -25728,6 +25844,18 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+/*import Buefy from 'buefy'
+import "@fortawesome/fontawesome-free/css/all.css";
+import 'buefy/dist/buefy.css'*/
+
+/*import Vuetify from 'vuetify'
+Vue.use(Vuetify)
+import 'vuetify/dist/vuetify.min.css'*/
+
+/*Vue.use(Buefy, {
+  defaultIconPack: 'fas'
+})*/
 
 
 

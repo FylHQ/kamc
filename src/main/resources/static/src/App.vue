@@ -21,18 +21,17 @@
       :on-success="onSuccess"
       name="xlsx"
       >
-      <el-button plain slot="trigger" type="primary" icon="el-icon-upload">Upload file</el-button>
-      <div slot="tip" class="el-upload__tip">Choose XLSX file</div>
+      <el-button plain slot="trigger" type="primary" icon="el-icon-upload">Загрузить файл</el-button>
+      <div slot="tip" class="el-upload__tip">Выберите xlsx файл</div>
       </el-upload>
 
-    
-    <el-button plain @click="getCount">Get obj count</el-button>
+    Проверка Oracle (число записей в i3_object)
+    <el-button plain @click="getCount">Запрос</el-button>
     <label><el-input style="width: 200px" placeholder="Click button to count" size="default" readonly maxlength="20" v-model="objCount"></el-input></label>
     <pre>
     {{ sheetInfo }}
     </pre>
-    
-    
+        
     <!--<button @click="getCount">Get obj count</button>
     <b-message :active.sync="isActive" type="is-success" has-icon>
         {{ objCount }}
@@ -65,6 +64,7 @@ export default {
     },
     onSuccess(response, file, fileList) {
       this.sheetInfo = response;
+      Notification({title: "Загрузка", message: "Показаны данные первого листа", type: "info"});
       //console.log(response)
     },
     submitUpload() {

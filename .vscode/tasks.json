@@ -1,0 +1,34 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "gradle compile",
+            "type": "shell",
+            "command": "gradle compileJava"
+        },
+        {
+            "label": "gradle build",
+            "type": "shell",
+            "command": "gradle build"
+        },
+        {
+            "label": "gradle boot run",
+            "type": "shell",
+            "command": "gradle bootRun"
+        },
+        {
+            "label": "gradle run",
+            "type": "shell",
+            "command": "gradle run --args='--server=ora11g --sid=kamc'",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                
+            }
+        }
+    ]
+}
