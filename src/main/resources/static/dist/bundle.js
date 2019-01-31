@@ -17022,7 +17022,36 @@ var render = function() {
           )
         ],
         1
-      )
+      ),
+      _vm._v("\n\n  Проверка Oracle (число записей в i3_object)\n  "),
+      _c("el-button", { attrs: { plain: "" }, on: { click: _vm.getCount } }, [
+        _vm._v("Запрос")
+      ]),
+      _vm._v(" "),
+      _c(
+        "label",
+        [
+          _c("el-input", {
+            staticStyle: { width: "200px" },
+            attrs: {
+              placeholder: "Click button to count",
+              size: "default",
+              readonly: "",
+              maxlength: "20"
+            },
+            model: {
+              value: _vm.objCount,
+              callback: function($$v) {
+                _vm.objCount = $$v
+              },
+              expression: "objCount"
+            }
+          })
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c("pre", [_vm._v("  ")])
     ],
     1
   )

@@ -7,11 +7,11 @@
       <div slot="tip" class="el-upload__tip">Выберите xlsx файл</div>
     </el-upload>
 
-    <!--Проверка Oracle (число записей в i3_object)
+    Проверка Oracle (число записей в i3_object)
     <el-button plain @click="getCount">Запрос</el-button>
     <label><el-input style="width: 200px" placeholder="Click button to count" size="default" readonly maxlength="20" v-model="objCount"></el-input></label>
     <pre>
-    </pre>-->
+    </pre>
   </div> 
 </template>
 <script>

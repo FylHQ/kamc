@@ -1,0 +1,33 @@
+package ru.devag.kamc.model;
+
+import javax.persistence.*;
+import java.util.Date;
+import org.hibernate.annotations.CreationTimestamp;
+
+@Entity(name="{{db_name}}")
+public class {{name}} {
+{% for col in cols %}
+   @Column(name = "{{col.db_name}}"{{', nullable = false' if not col.nullable else ''}})
+   {% if col.is_pk -%}
+   @Id
+   @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
+   @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
+   {% endif -%}
+   {% if col.data_type == 'Date' and col.default == 'sysdate' -%}
+   @CreationTimestamp
+   {% endif -%}
+   {% if col.data_type == 'String' and col.default == 'user' -%}
+   @Transient
+   {% endif -%}
+   private {{col.data_type}} {{col.name}};
+{% endfor %}
+{% for col in cols %}
+   public {{col.data_type}} get{{col.cap_name}}() {
+      return {{col.name}};
+   }
+
+   public void set{{col.cap_name}}({{col.data_type}} {{col.name}}) {
+      this.{{col.name}} = {{col.name}};
+   }
+{% endfor %}
+}
