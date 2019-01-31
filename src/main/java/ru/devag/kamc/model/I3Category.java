@@ -1,8 +1,6 @@
 package ru.devag.kamc.model;
 
-import java.util.Date;
 import javax.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity(name="i3_category")
 public class I3Category {

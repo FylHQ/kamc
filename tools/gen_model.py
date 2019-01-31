@@ -86,7 +86,8 @@ class Generator:
 gen = Generator()
 
 #tables = ['I3_OBJECT', 'I3_CATEGORY', 'I3_RELATION', 'I3_BASEMENT']
-tables = ['I3_CNTR_COMPONENT']
+#tables = ['I3_CNTR_COMPONENT', 'I3_SUBJECT', 'I3_PERS_COMPONENT', 'I3_CMPY_COMPONENT']
+tables = []
 javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
 
 gen.store(tables, javaSrc)
