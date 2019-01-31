@@ -4,8 +4,8 @@ import jinja2
 import os.path
 
 class Generator:
-   def __init__(self):
-      self.con = cx_Oracle.connect('i3/pandora@127.0.0.1/kamc')
+   def __init__(self, url):
+      self.con = cx_Oracle.connect(url)
       self.cur = self.con.cursor()
       #con.close()
 
@@ -54,7 +54,7 @@ class Generator:
       for result in self.cur:
          col = {}
          col['is_pk'] = result[0] == pkCol
-         col['name'] = self.convert(result[0])
+         col['name'] = 'id' if col['is_pk'] else self.convert(result[0])
          col['cap_name'] = col['name'][0].upper() + col['name'][1:]
          col['db_name'] = result[0].lower()
          col['nullable'] = result[1] == 'Y'
@@ -83,13 +83,14 @@ class Generator:
 
 
 
-gen = Generator()
+#gen = Generator('i3/pandora@127.0.0.1/kamc')
+gen = Generator('i3/pandora@ora11g/kamc')
 
 #tables = ['I3_OBJECT', 'I3_CATEGORY', 'I3_RELATION', 'I3_BASEMENT']
 #tables = ['I3_CNTR_COMPONENT', 'I3_SUBJECT', 'I3_PERS_COMPONENT', 'I3_CMPY_COMPONENT']
-tables = []
-javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
-
+tables = ['I3_STATUS']
+#javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
+javaSrc = 'C:/prj/KAMC/web/src/main/java'
 gen.store(tables, javaSrc)
 
 #parser = argparse.ArgumentParser("")
