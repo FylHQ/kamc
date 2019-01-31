@@ -68,6 +68,11 @@ public class MainController {
         
         workbook.close();
         is.close();
+
+        for (SheetInfo sheet: bookInfo.sheets) {
+            
+        }
+
                            
         //return "redirect:/uploadStatus";
         return bookInfo;
