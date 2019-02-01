@@ -4,8 +4,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +35,17 @@ public class MainController {
     I3CntrComponentRepository cntrRepo;
     
 
+    @RequestMapping("/cntr")
+
+    public String cntr() {
+        Page<I3CntrComponent> cntrs = cntrRepo.findAll(PageRequest.of(1, 20, Sort.by("cnrNumber")));
+        String s = "";
+        for (I3CntrComponent cntr: cntrs) {
+            s += cntr.getCnrNumber() + "<br/>";
+        }
+        return s;
+    }
+
     @RequestMapping("/obj/count")
     public String index() {
         //return i3Repo.count();
@@ -50,6 +66,8 @@ public class MainController {
         //3
         //return jdbcTemplate.queryForObject("select count(1) from i3_object", Integer.class);
     }
+
+    
 
     @PostMapping("/upload")
     public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file) throws IOException {

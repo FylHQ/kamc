@@ -18,14 +18,14 @@ public class BookInfo {
       while(sheetIt.hasNext()) {
           Sheet sheet = sheetIt.next();
           importSheet(sheet);
-          if (sheets.size() == 5)
-            break;
+          //if (sheets.size() == 5) break;
       }
    }
 
    void importSheet(Sheet sheet) {
 
       SheetInfo sheetInfo = new SheetInfo();
+      sheetInfo.sheetName = sheet.getSheetName();
       Iterator<Row> rowIt = sheet.iterator();
       boolean isTable = false;
 

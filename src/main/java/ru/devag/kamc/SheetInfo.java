@@ -14,6 +14,7 @@ public class SheetInfo {
    public static final String CNTR_MONTH_SUM = "Размер ежемесячной арендной платы по договору:";
    public static final String CNTR_YEAR_SUM = "Размер годовой арендной платы по договору:";
 
+   public String sheetName;
    public String subject;
    public String inn;
    public String cntrNum;

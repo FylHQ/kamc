@@ -1,19 +1,26 @@
 import Vue from 'vue'
 
 /*import Buefy from 'buefy'
-import "@fortawesome/fontawesome-free/css/all.css";
+
 import 'buefy/dist/buefy.css'*/
 
-/*import Vuetify from 'vuetify'
-Vue.use(Vuetify)
-import 'vuetify/dist/vuetify.min.css'*/
+//import "@fortawesome/fontawesome-free/css/all.css";
+//import '@mdi/font/css/materialdesignicons.css'
+
+import 'vuetify/dist/vuetify.min.css'
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
+
+import Vuetify from 'vuetify'
+Vue.use(Vuetify, {
+  iconfont: 'md'
+})
 
 
 /*Vue.use(Buefy, {
   defaultIconPack: 'fas'
 })*/
 
-import { Button, Select, Option, Dialog, Input, Tabs, TabPane, Upload, Switch, Alert, Popover } from 'element-ui'
+/*import { Button, Select, Option, Dialog, Input, Tabs, TabPane, Upload, Switch, Alert, Popover } from 'element-ui'
 import elementLang from 'element-ui/lib/locale/lang/en'
 import elementLocale from 'element-ui/lib/locale'
 elementLocale.use(elementLang);
@@ -28,7 +35,7 @@ Vue.component(Upload.name, Upload);
 Vue.component(Switch.name, Switch);
 Vue.component(Alert.name, Alert);
 Vue.component(Popover.name, Popover);
-import 'element-ui/lib/theme-chalk/index.css';
+import 'element-ui/lib/theme-chalk/index.css';*/
 
 import App from './App.vue' 
 
