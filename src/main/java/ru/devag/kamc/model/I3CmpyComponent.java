@@ -10,7 +10,7 @@ public class I3CmpyComponent {
    @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
-   private Long cmpCmpyComponentId;
+   private Long id;
 
    @Column(name = "i3cfv_classifier_value_id")
    private Long cfvClassifierValueId;
@@ -150,13 +150,12 @@ public class I3CmpyComponent {
    @Column(name = "i3cmp_elimination_bst_id")
    private Long cmpEliminationBstId;
 
-
-   public Long getCmpCmpyComponentId() {
-      return cmpCmpyComponentId;
+   public Long getId() {
+      return id;
    }
 
-   public void setCmpCmpyComponentId(Long cmpCmpyComponentId) {
-      this.cmpCmpyComponentId = cmpCmpyComponentId;
+   public void setId(Long id) {
+      this.id = id;
    }
 
    public Long getCfvClassifierValueId() {

@@ -4,18 +4,18 @@
     <v-content>
       <v-container grid-list-xs fluid>
         <v-layout row wrap>
-        <v-flex xs12 sm6>
-          <v-text-field label="Загрузить файл" @click='pickFile' v-model='imageName' prepend-icon='attach_file'></v-text-field>
-          <input
-						type="file"
-						style="display: none"
-						ref="attach"
-						@change="onFilePicked"
-					>
-        </v-flex>
-        <v-flex xs12 sm6>
-          <v-btn color="success">Success</v-btn>
-        </v-flex>
+          <v-flex xs12 sm6>
+            <v-text-field label="Загрузить файл" @click='pickFile' v-model='imageName' prepend-icon='attach_file'></v-text-field>
+            <input
+              type="file"
+              style="display: none"
+              ref="attach"
+              @change="onFilePicked"
+            >
+          </v-flex>
+          <v-flex xs12 sm6>
+            <v-btn color="success" @click="importSelected">Импортировать</v-btn>
+          </v-flex>
         </v-layout>
         <v-layout row wrap>
           <v-flex xs12>
@@ -134,6 +134,13 @@ export default {
           console.error(error)
         })
       }
+    },
+    importSelected() {
+      let self = this
+      let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
+      axios.post('/import', codes)
+      .then(result => console.log(result.data))
+      .catch(error => console.error(result.data))
     },
     toggleAll() {
       if (this.selected.length) this.selected = []

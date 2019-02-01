@@ -4,16 +4,27 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +35,7 @@ import ru.devag.kamc.repo.*;
 
 @RestController
 public class MainController {
+    private static Logger logger = LoggerFactory.getLogger(MainController.class);
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -33,6 +45,12 @@ public class MainController {
 
     @Autowired
     I3CntrComponentRepository cntrRepo;
+
+    @Autowired
+    ImportService importSvc;
+
+    //ConcurrentHashMap<String, CompletableFuture<String>> impResults = new ConcurrentHashMap<>();
+    CompletableFuture<String> impResult = null;
     
 
     @RequestMapping("/cntr")
@@ -67,18 +85,8 @@ public class MainController {
         //return jdbcTemplate.queryForObject("select count(1) from i3_object", Integer.class);
     }
 
-    
-
     @PostMapping("/upload")
     public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file) throws IOException {
-
-        // Get the file and save it somewhere
-        /*byte[] bytes = file.getBytes();
-        Path path = Paths.get(file.getOriginalFilename());
-        Files.write(path, bytes);
-        redirectAttributes.addFlashAttribute("message",
-                "You successfully uploaded '" + file.getOriginalFilename() + "'");*/
-
         InputStream is = file.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(is);
 
@@ -87,16 +95,49 @@ public class MainController {
         workbook.close();
         is.close();
 
-        for (SheetInfo sheet: bookInfo.sheets) {
-            
-        }
-
-                           
-        //return "redirect:/uploadStatus";
+        importSvc.put("1", bookInfo);
+                          
         return bookInfo;
     }
 
-    
+    /*@GetMapping("/check/{sheetName}")
+    public String check(@PathVariable String sheetName) {
+        CompletableFuture<String> future = impResults.get(sheetName);
+        if (future != null)
+            return future.isDone() ? "DONE" : "BUSY";
+        else
+            return "NOT_FOUND";
+    }*/
 
-    
+    @GetMapping("/checkall")
+    public String checkAll() {
+        if (impResult != null)
+            return impResult.isDone() ? "DONE" : "BUSY";
+        else
+            return "NOT_FOUND";
+    }
+
+    @PostMapping("/import")
+    public String importBook(@RequestBody Map<String, Integer> sheetCodes) throws InterruptedException {
+        BookInfo bookInfo = importSvc.get("1");
+        if (bookInfo == null) {
+            return "Книга не загружена";
+        }
+
+        if (impResult != null && !impResult.isDone()) {
+            return "Предыдущий импорт еще не завершен";
+        }
+
+        List<SheetInfo> sheets = new ArrayList<>();
+        for (SheetInfo sheet: bookInfo.sheets) {
+            if (sheetCodes.containsKey(sheet.sheetName)) {
+                sheets.add(sheet);
+            }
+        }
+        impResult = importSvc.importSheets(sheets);
+
+        return "OK";
+
+    }
+   
 }

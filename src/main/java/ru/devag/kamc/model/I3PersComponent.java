@@ -13,7 +13,7 @@ public class I3PersComponent {
    private Long prsPrsComponentId;
 
    @Column(name = "i3sbj_subject_id", nullable = false)
-   private Long sbjSubjectId;
+   private Long id;
 
    @Column(name = "i3prs_first_name")
    private String prsFirstName;
@@ -46,14 +46,6 @@ public class I3PersComponent {
 
    public void setPrsPrsComponentId(Long prsPrsComponentId) {
       this.prsPrsComponentId = prsPrsComponentId;
-   }
-
-   public Long getSbjSubjectId() {
-      return sbjSubjectId;
-   }
-
-   public void setSbjSubjectId(Long sbjSubjectId) {
-      this.sbjSubjectId = sbjSubjectId;
    }
 
    public String getPrsFirstName() {
@@ -118,6 +110,14 @@ public class I3PersComponent {
 
    public void setPrsSnils(Double prsSnils) {
       this.prsSnils = prsSnils;
+   }
+
+   public Long getId() {
+      return id;
+   }
+
+   public void setId(Long id) {
+      this.id = id;
    }
 
 }
