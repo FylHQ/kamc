@@ -26,9 +26,13 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "presentation": {
-                
-            }
+            "presentation": {}
+        },
+        {
+            "type": "npm",
+            "script": "webpack",
+            "path": "src/main/resources/static/",
+            "problemMatcher": []
         }
     ]
 }

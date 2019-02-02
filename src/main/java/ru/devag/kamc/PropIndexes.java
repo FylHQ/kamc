@@ -3,6 +3,7 @@ package ru.devag.kamc;
 import org.apache.poi.ss.usermodel.Cell;
 
 public class PropIndexes {
+   
    public static final String PROP_NUM = "№ п/п";
    public static final String PROP_NAME = "наименование";
    public static final String PROP_ADDRESS = "адрес";

@@ -15,6 +15,7 @@
             "type": "java",
             "name": "Home",
             "request": "launch",
+            "encoding": "UTF-8",
             "mainClass": "ru.devag.kamc.KamcApplication",
             "projectName": "web",
             "args": "--server=ora11g --sid=kamc"
