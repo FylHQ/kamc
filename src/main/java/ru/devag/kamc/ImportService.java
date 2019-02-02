@@ -59,7 +59,7 @@ public class ImportService {
                      logger.info("sbj new INN: {}", sheet.inn);
                   }
                }
-               //logger.info("cmpy: {}", cmpy.get(0).getT3cmpShortName());
+               // logger.info("cmpy: {}", cmpy.get(0).getT3cmpShortName());
             }
          }
       }

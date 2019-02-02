@@ -44,5 +44,4 @@ public class SheetInfo {
             cntrYearSum = cellText.substring(CNTR_YEAR_SUM.length()).trim();
         }
    }
-
 }

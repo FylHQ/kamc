@@ -5,11 +5,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BookInfo {
+   private static Logger logger = LoggerFactory.getLogger(MainController.class);
+
    public List<SheetInfo> sheets = new ArrayList<>();
 
    public BookInfo(XSSFWorkbook workbook) {
@@ -26,29 +31,31 @@ public class BookInfo {
 
       SheetInfo sheetInfo = new SheetInfo();
       sheetInfo.sheetName = sheet.getSheetName();
+      logger.info("Sheet: {}", sheetInfo.sheetName);
       Iterator<Row> rowIt = sheet.iterator();
       boolean isTable = false;
 
+      
       //шапка листа до перечня
       while (rowIt.hasNext() && !isTable) {
-          Row row = rowIt.next();
+         Row row = rowIt.next();
 
-          Iterator<Cell> cellIterator = row.cellIterator();
-          while (cellIterator.hasNext() && !isTable) {
-              Cell cell = cellIterator.next();
+         Iterator<Cell> cellIterator = row.cellIterator();
+         while (cellIterator.hasNext() && !isTable) {
+            Cell cell = cellIterator.next();
 
-              if (cell.getColumnIndex() == 0) {
-                  sheetInfo.set(cell);
-              }
+            if (cell.getColumnIndex() == 0) {
+               sheetInfo.set(cell);
+            }
 
-              if (cell.toString().equals("Перечень имущества по договору аренды")) {
-                  isTable = true;
-              }
-          }
+            if (cell.toString().equalsIgnoreCase("Перечень имущества по договору аренды")) {
+               isTable = true;
+            }
+         }
       }
 
       if (!isTable) {
-          throw new RuntimeException("Не удалось найти перечень");
+          throw new RuntimeException("Не удалось найти перечень: " + sheet.getSheetName());
       }
 
       //индексы таблицы

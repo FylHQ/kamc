@@ -80,7 +80,6 @@ public class MainController {
         obj2.setObjNumber("QQQ" + System.currentTimeMillis());
         i3Repo.save(obj2);
         return obj2.getObjObjectId();*/
-
         //3
         //return jdbcTemplate.queryForObject("select count(1) from i3_object", Integer.class);
     }
@@ -127,7 +126,7 @@ public class MainController {
         if (impResult != null && !impResult.isDone()) {
             return "Предыдущий импорт еще не завершен";
         }
-
+        
         List<SheetInfo> sheets = new ArrayList<>();
         for (SheetInfo sheet: bookInfo.sheets) {
             if (sheetCodes.containsKey(sheet.sheetName)) {
@@ -135,9 +134,6 @@ public class MainController {
             }
         }
         impResult = importSvc.importSheets(sheets);
-
         return "OK";
-
     }
-   
 }

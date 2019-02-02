@@ -11,4 +11,3 @@ public class KamcApplication {
 		SpringApplication.run(KamcApplication.class, args);
 	}
 }
-
