@@ -11,7 +11,7 @@ public class I3Basement {
    @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
-   private Long bstBasementId;
+   private Long id;
 
    @Column(name = "i3cat_category_id", nullable = false)
    private Long catCategoryId;
@@ -35,12 +35,12 @@ public class I3Basement {
    private String bstUser;
 
 
-   public Long getBstBasementId() {
-      return bstBasementId;
+   public Long getId() {
+      return id;
    }
 
-   public void setBstBasementId(Long bstBasementId) {
-      this.bstBasementId = bstBasementId;
+   public void setId(Long id) {
+      this.id = id;
    }
 
    public Long getCatCategoryId() {

@@ -31,7 +31,6 @@ public class BookInfo {
 
       SheetInfo sheetInfo = new SheetInfo();
       sheetInfo.sheetName = sheet.getSheetName();
-      logger.info("Sheet: {}", sheetInfo.sheetName);
       Iterator<Row> rowIt = sheet.iterator();
       boolean isTable = false;
 

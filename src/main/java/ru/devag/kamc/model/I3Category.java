@@ -9,7 +9,7 @@ public class I3Category {
    @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
-   private Long catCategoryId;
+   private Long id;
 
    @Column(name = "i3cat_parent_id")
    private Long catParentId;
@@ -21,12 +21,12 @@ public class I3Category {
    private String catTable;
 
 
-   public Long getCatCategoryId() {
-      return catCategoryId;
+   public Long getId() {
+      return id;
    }
 
-   public void setCatCategoryId(Long catCategoryId) {
-      this.catCategoryId = catCategoryId;
+   public void setId(Long id) {
+      this.id = id;
    }
 
    public Long getCatParentId() {
