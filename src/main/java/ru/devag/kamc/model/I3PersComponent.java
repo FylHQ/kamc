@@ -10,10 +10,10 @@ public class I3PersComponent {
    @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
-   private Long prsPrsComponentId;
+   private Long id;
 
    @Column(name = "i3sbj_subject_id", nullable = false)
-   private Long id;
+   private Long sbjSubjectId;
 
    @Column(name = "i3prs_first_name")
    private String prsFirstName;
@@ -40,12 +40,20 @@ public class I3PersComponent {
    private Double prsSnils;
 
 
-   public Long getPrsPrsComponentId() {
-      return prsPrsComponentId;
+   public Long getId() {
+      return id;
    }
 
-   public void setPrsPrsComponentId(Long prsPrsComponentId) {
-      this.prsPrsComponentId = prsPrsComponentId;
+   public void setId(Long id) {
+      this.id = id;
+   }
+
+   public Long getSbjSubjectId() {
+      return sbjSubjectId;
+   }
+
+   public void setSbjSubjectId(Long sbjSubjectId) {
+      this.sbjSubjectId = sbjSubjectId;
    }
 
    public String getPrsFirstName() {
@@ -110,14 +118,6 @@ public class I3PersComponent {
 
    public void setPrsSnils(Double prsSnils) {
       this.prsSnils = prsSnils;
-   }
-
-   public Long getId() {
-      return id;
-   }
-
-   public void setId(Long id) {
-      this.id = id;
    }
 
 }

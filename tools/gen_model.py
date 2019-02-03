@@ -88,7 +88,10 @@ gen = Generator('i3/pandora@ora11g/kamc')
 
 #tables = ['I3_OBJECT', 'I3_CATEGORY', 'I3_RELATION', 'I3_BASEMENT']
 #tables = ['I3_CNTR_COMPONENT', 'I3_SUBJECT', 'I3_PERS_COMPONENT', 'I3_CMPY_COMPONENT']
-tables = ['I3_STATUS']
+#tables = ['I3_STATUS']
+#tables = ['I3_LPTY_COMPONENT']
+#tables = ['I3_CLASSIFIER_VALUE']
+tables = ['I3_SBJ_BST', 'I3_SBJ_CONTRACTOR']
 #javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
 javaSrc = 'C:/prj/KAMC/web/src/main/java'
 gen.store(tables, javaSrc)
