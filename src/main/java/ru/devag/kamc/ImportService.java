@@ -56,6 +56,12 @@ public class ImportService {
    @Autowired
    I3SbjContractorRepository contractorRepo;
 
+   @Autowired
+   I3ObjectRepository objRepo;
+
+   @Autowired
+   I3ObjBstRepository objBstRepo;
+
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
    private Long landlordId = -1L;
@@ -157,6 +163,11 @@ public class ImportService {
       sbjContractor.setSbcBusIsPers("F");
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
+
+      for (PropertyInfo property: sheet.property) {
+         objRepo.findByObjDescriptionIgnoreCase(property.propName);
+      }
+
    }
 
    private Long getSbjId(SheetInfo sheet) {
