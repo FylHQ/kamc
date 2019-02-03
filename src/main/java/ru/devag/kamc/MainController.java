@@ -1,6 +1,7 @@
 package ru.devag.kamc;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,7 +116,7 @@ public class MainController {
         XSSFWorkbook workbook = new XSSFWorkbook(is);
 
         BookInfo bookInfo = new BookInfo(workbook);
-        
+
         workbook.close();
         is.close();
 
@@ -142,15 +143,16 @@ public class MainController {
     }
 
     @PostMapping("/import")
+    @Transactional
     public String importBook(@RequestBody Map<String, Integer> sheetCodes) throws InterruptedException {
         BookInfo bookInfo = importSvc.get("1");
         if (bookInfo == null) {
             return "Книга не загружена";
         }
 
-        if (impResult != null && !impResult.isDone()) {
+        /*if (impResult != null && !impResult.isDone()) {
             return "Предыдущий импорт еще не завершен";
-        }
+        }*/
         
         List<SheetInfo> sheets = new ArrayList<>();
         for (SheetInfo sheet: bookInfo.sheets) {
@@ -158,7 +160,7 @@ public class MainController {
                 sheets.add(sheet);
             }
         }
-        impResult = importSvc.importSheets(sheets);
-        return "OK";
+        return importSvc.importSheets(sheets);
+        //return "OK";
     }
 }

@@ -14,8 +14,7 @@
             >
           </v-flex>
           <v-flex xs12 sm6>
-            <v-btn color="success" @click="importSelected">Импортировать</v-btn>
-            <v-btn color="success" @click="showLog">Журнал</v-btn>
+            <v-btn color="success" :disabled="!isActive" @click="importSelected">Импортировать</v-btn>
           </v-flex>
         </v-layout>
         <v-layout row wrap>
@@ -68,21 +67,10 @@
             </v-data-table>
           </v-flex>
           <v-flex xs4>
-           <!--<v-data-table
-              :items="logitems">
-              <template slot="items" slot-scope="props">
-                <td>{{ props.item.message }}</td>
-              </template>
-           </v-data-table>-->
-           <!--<v-list>
-            <v-list-tile v-for="(item, index) in logitems" :key="index">
-              {{ item.message }}
-            </v-list-tile>
-           </v-list>-->
            <div class="headline">Журнал</div>
            <div ref="log" style="max-height: 300px; overflow-y: auto">
-            <div v-for="(item, index) in logitems" :key="index">
-              {{ item.timestamp }}: {{ item.message }}
+            <div :class="'log-' + item.level" v-for="(item, index) in logitems" :key="index">
+              {{ item.message }}
             </div>
             </div>
           </v-flex>
@@ -111,7 +99,7 @@ export default {
   name: 'mainapp',
   data () {
     return {
-      msg: 'Welcome to web server',
+      msg: 'АИС "Имущество',
       fileList: [],
       objCount: null,
       file: null,
@@ -131,7 +119,8 @@ export default {
       ],
       logitems: [],
       logtimestamp: new Date().getTime(),
-      intervalLog: null
+      intervalLog: null,
+      isActive: false
     }
   },
   mounted: function() {
@@ -168,6 +157,7 @@ export default {
         axios.post('/upload', formData)
         .then(result=>{
           self.sheets = result.data.sheets
+          self.isActive = true
         })
         .catch(error => {
           console.error(error)
@@ -178,8 +168,8 @@ export default {
       let self = this
       let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
       axios.post('/import', codes)
-      .then(result => console.log(result.data))
-      .catch(error => console.error(result.data))
+      .then(result => self.logitems.push({message: "Результат: " + result.data}))
+      .catch(error => self.logitems.push({level: 'ERROR', message: "Ошибка: " + error}))
     },
     toggleAll() {
       if (this.selected.length) this.selected = []
@@ -226,5 +216,9 @@ export default {
 .count {
   border: 1px solid blue;
   ;
+}
+
+.log-ERROR {
+  color: red;
 }
 </style>
