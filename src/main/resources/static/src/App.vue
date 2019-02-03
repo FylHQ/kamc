@@ -15,10 +15,11 @@
           </v-flex>
           <v-flex xs12 sm6>
             <v-btn color="success" @click="importSelected">Импортировать</v-btn>
+            <v-btn color="success" @click="showLog">Журнал</v-btn>
           </v-flex>
         </v-layout>
         <v-layout row wrap>
-          <v-flex xs12>
+          <v-flex xs8>
             <v-data-table
               v-model="selected"
               :headers="headers"
@@ -66,6 +67,25 @@
               </template>
             </v-data-table>
           </v-flex>
+          <v-flex xs4>
+           <!--<v-data-table
+              :items="logitems">
+              <template slot="items" slot-scope="props">
+                <td>{{ props.item.message }}</td>
+              </template>
+           </v-data-table>-->
+           <!--<v-list>
+            <v-list-tile v-for="(item, index) in logitems" :key="index">
+              {{ item.message }}
+            </v-list-tile>
+           </v-list>-->
+           <div class="headline">Журнал</div>
+           <div ref="log" style="max-height: 300px; overflow-y: auto">
+            <div v-for="(item, index) in logitems" :key="index">
+              {{ item.timestamp }}: {{ item.message }}
+            </div>
+            </div>
+          </v-flex>
         </v-layout>
       </v-container>
   
@@ -108,16 +128,35 @@ export default {
           { text: 'Арендатор', value: 'subject' }
       ],
       sheets: [
-      ]
+      ],
+      logitems: [],
+      logtimestamp: new Date().getTime(),
+      intervalLog: null
     }
   },
   mounted: function() {
+    this.intervalLog = setInterval(this.showLog, 3000);
     //Notification({title: "KAMC", message: "Hello", type: "info", dangerouslyUseHTMLString: true});
+  },
+  beforeDestroy () {
+    clearInterval(this.intervalLog)
   },
   methods: {
     pickFile() {
       this.$refs.attach.click ()
 
+    },
+    showLog() {
+      var self = this
+      axios.get('/log', {params: {from: this.logtimestamp}})
+        .then(result=>{
+          result.data.forEach(item => {
+            self.logitems.push(item)
+            self.logtimestamp = item.timestamp
+          })
+          self.$refs.log.scrollTop = self.$refs.log.scrollHeight
+          //self.logitems = result.data
+        })
     },
     onFilePicked(e) {
       var self = this;
@@ -186,5 +225,6 @@ export default {
 }
 .count {
   border: 1px solid blue;
+  ;
 }
 </style>

@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import ru.devag.kamc.log.*;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
@@ -64,7 +69,27 @@ public class MainController {
         return s;
     }
 
-    @RequestMapping("/obj/count")
+    @RequestMapping("/log")
+    public List<LogItem> testLog(@RequestParam(required = false) Long from) {
+        //LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        //ListAppender<ILoggingEvent> listAppender = (ListAppender<ILoggingEvent>)context.getLogger(Logger.ROOT_LOGGER_NAME).getAppender("List");
+        MemoryAppender instance = MemoryAppenderInstance.getInstance();
+        
+        return instance.getEvents().stream()
+            .filter(e -> from == null || e.getTimeStamp() > from)
+            .map(e -> new LogItem(e))
+            .collect(Collectors.toList());
+        
+        //ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        
+        //ListAppender<ILoggingEvent> listAppender = (ListAppender<ILoggingEvent>)rootLogger.getAppender("List");
+        //return listAppender.list.size();
+        //(ListAppender) root
+        //.getAppender("LIST");
+    }
+
+  @RequestMapping("/obj/count")
     public String index() {
         //return i3Repo.count();
 

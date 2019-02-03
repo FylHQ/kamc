@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+   <appender name="List"
+        class="ru.devag.kamc.log.MemoryAppender">
+        
+    </appender>
+
+    <logger name="ru.devag.kamc" level="info">
+      <appender-ref ref="List" />
+   </logger>
+	
+   <!--<root level="INFO">
+		<appender-ref ref="List" />
+	</root>-->
+</configuration>
