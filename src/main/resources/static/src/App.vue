@@ -14,7 +14,12 @@
             >
           </v-flex>
           <v-flex xs12 sm6>
-            <v-btn color="success" :disabled="!isActive" @click="importSelected">Импортировать</v-btn>
+            <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
+            <v-progress-circular
+              :indeterminate="isActive"
+              v-if="isActive"
+              color="primary"
+            ></v-progress-circular>
           </v-flex>
         </v-layout>
         <v-layout row wrap>
@@ -102,7 +107,7 @@ export default {
       fileList: [],
       objCount: null,
       file: null,
-      isActive: false,
+      isImportEnabled: false,
       sheetInfo: "",
       imageName: null,
       selected: [],
@@ -119,6 +124,7 @@ export default {
       logitems: [],
       logtimestamp: new Date().getTime(),
       intervalLog: null,
+      isImportEnabled: false,
       isActive: false
     }
   },
@@ -157,7 +163,7 @@ export default {
         axios.post('/upload', formData)
         .then(result=>{
           self.sheets = result.data.sheets
-          self.isActive = true
+          self.isImportEnabled = true
         })
         .catch(error => {
           console.error(error)
@@ -167,15 +173,18 @@ export default {
     importSelected() {
       let self = this
       let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
-      self.isActive = false
+      self.isImportEnabled = false
+      self.isActive = true
       axios.post('/import', codes)
       .then(result => {
         self.logitems.push({message: "Результат: " + result.data})
-        self.isActive = true
+        self.isImportEnabled = true
+        self.isActive = false
       })
       .catch(error => {
         self.logitems.push({level: 'ERROR', message: "Ошибка: " + error})
-        self.isActive = true
+        self.isImportEnabled = true
+        self.isActive = false
       })
     },
     toggleAll() {
@@ -203,7 +212,7 @@ export default {
       axios.get('/obj/count')
         .then(result => {
           self.objCount = result.data;
-          self.isActive = true
+          self.isImportEnabled = true
           //Notification({title: "Подсчет", message: "Данные получены", type: "info"});
         })
         .catch(() => {
