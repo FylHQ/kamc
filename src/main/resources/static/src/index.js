@@ -11,8 +11,14 @@ import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 import Vuetify from 'vuetify'
+import ru from 'vuetify/es5/locale/ru'
+
 Vue.use(Vuetify, {
-  iconfont: 'md'
+  iconfont: 'md',
+  lang: {
+    locales: { ru },
+    current: 'ru'
+  }
 })
 
 
