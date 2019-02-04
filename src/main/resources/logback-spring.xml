@@ -4,10 +4,9 @@
 
    <appender name="List"
         class="ru.devag.kamc.log.MemoryAppender">
-        
     </appender>
 
-    <logger name="ru.devag.kamc" level="info">
+   <logger name="ru.devag.kamc" level="debug">
       <appender-ref ref="List" />
    </logger>
 	

@@ -20,7 +20,6 @@ public class I3SbjBst {
    @Column(name = "i3sbb_type", nullable = false)
    private Long sbbType;
 
-
    public Long getId() {
       return id;
    }

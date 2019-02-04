@@ -185,5 +185,4 @@ public class I3LptyComponent {
    public void setLpyLeaRate(Long lpyLeaRate) {
       this.lpyLeaRate = lpyLeaRate;
    }
-
 }

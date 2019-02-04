@@ -15,10 +15,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import ru.devag.kamc.log.*;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
@@ -54,6 +56,16 @@ public class MainController {
 
     @Autowired
     ImportService importSvc;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Autowired
+    I3ObjectRepository objRepo;
+
+    @Autowired
+    I3BasementRepository bstRepo;
+ 
 
     //ConcurrentHashMap<String, CompletableFuture<String>> impResults = new ConcurrentHashMap<>();
     CompletableFuture<String> impResult = null;
@@ -120,6 +132,12 @@ public class MainController {
         workbook.close();
         is.close();
 
+        bookInfo.sheets.forEach(sheet -> {
+            if (bstRepo.findByBstNumber(sheet.cntrNum).isPresent()) {
+                sheet.isExists = true;
+            }
+        });
+
         importSvc.put("1", bookInfo);
 
         return bookInfo;
@@ -143,7 +161,6 @@ public class MainController {
     }
 
     @PostMapping("/import")
-    @Transactional
     public String importBook(@RequestBody Map<String, Integer> sheetCodes) throws InterruptedException {
         BookInfo bookInfo = importSvc.get("1");
         if (bookInfo == null) {
@@ -157,10 +174,42 @@ public class MainController {
         List<SheetInfo> sheets = new ArrayList<>();
         for (SheetInfo sheet: bookInfo.sheets) {
             if (sheetCodes.containsKey(sheet.sheetName)) {
+                if (StringUtils.isEmpty(sheet.inn)) {
+                    logger.error("Не указан ИНН: {}", sheet.subject);
+                } else {
+                    try {
+                        importSvc.importSheet(sheet);
+                        logger.info("Импорт [{}]: OK", sheet.cntrNum);
+                     } catch (Exception e) {
+                        logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e.getLocalizedMessage());
+                     }
+                }
+                
                 sheets.add(sheet);
             }
         }
-        return importSvc.importSheets(sheets);
-        //return "OK";
+        //return importSvc.importSheets(sheets);
+        return "OK";
     }
+
+    @GetMapping("/test1")
+    public int test1() {
+        /*Query q = em.createQuery("select obj from I3Object obj " +
+            "join I3ObjRtn obr on obj.id = obr.objObjectId " + 
+            "join I3SbjRtn sbr on obr.rtnRelationId = sbr.rtnRelationId " + 
+            "where sbr.sbjSubjectId = :sbjId");
+        q.setParameter("sbjId", 30645764L);
+        List<I3Object> obj = q.getResultList();*/
+        List<I3Object> objs = objRepo.findByRtnSbj(30645764L);
+        Map<String, List<I3Object>> result =
+            objs.stream().collect(Collectors.groupingBy(I3Object::getObjDescription));
+        //Map<String, List<Long>> descrIds = objs.stream().
+
+        //objs.stream().forEach(action);
+        //logger.info("{}", obj.get(0)[1]);
+        //List<I3Object> obj = commonRepo.find1(30645764L);
+        return objs.size();
+    }
+
+    
 }

@@ -18,7 +18,7 @@
           </v-flex>
         </v-layout>
         <v-layout row wrap>
-          <v-flex xs8>
+          <v-flex xs6>
             <v-data-table
               v-model="selected"
               :headers="headers"
@@ -59,14 +59,13 @@
                       hide-details
                     ></v-checkbox>
                   </td>
-                  <td>{{ props.item.sheetName }}</td>
-                  <td>{{ props.item.cntrNum }}</td>
-                  <td>{{ props.item.subject }}</td>
+                  <td :class="'cntr-' + props.item.isExists">{{ props.item.sheetName }}</td>
+                  <td :class="'cntr-' + props.item.isExists">{{ props.item.subject }}</td>
                 </tr>
               </template>
             </v-data-table>
           </v-flex>
-          <v-flex xs4>
+          <v-flex xs6>
            <div class="headline">Журнал</div>
            <div ref="log" style="max-height: 300px; overflow-y: auto">
             <div :class="'log-' + item.level" v-for="(item, index) in logitems" :key="index">
@@ -112,7 +111,7 @@ export default {
       },
       headers: [
           { text: 'Лист', value: 'sheetName' },
-          { text: 'Договор', value: 'cntrNum', sortable: true },
+          /*{ text: 'Договор', value: 'cntrNum', sortable: true },*/
           { text: 'Арендатор', value: 'subject' }
       ],
       sheets: [
@@ -143,7 +142,8 @@ export default {
             self.logitems.push(item)
             self.logtimestamp = item.timestamp
           })
-          self.$refs.log.scrollTop = self.$refs.log.scrollHeight
+          if (result.data.length)
+            self.$refs.log.scrollTop = self.$refs.log.scrollHeight
           //self.logitems = result.data
         })
     },
@@ -167,13 +167,20 @@ export default {
     importSelected() {
       let self = this
       let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
+      self.isActive = false
       axios.post('/import', codes)
-      .then(result => self.logitems.push({message: "Результат: " + result.data}))
-      .catch(error => self.logitems.push({level: 'ERROR', message: "Ошибка: " + error}))
+      .then(result => {
+        self.logitems.push({message: "Результат: " + result.data})
+        self.isActive = true
+      })
+      .catch(error => {
+        self.logitems.push({level: 'ERROR', message: "Ошибка: " + error})
+        self.isActive = true
+      })
     },
     toggleAll() {
       if (this.selected.length) this.selected = []
-      else this.selected = this.sheets.slice()
+      else this.selected = this.sheets.filter(item => !item.isExists)
     },
     changeSort (column) {
         if (this.pagination.sortBy === column) {
@@ -220,5 +227,14 @@ export default {
 
 .log-ERROR {
   color: red;
+}
+.log-WARN {
+  color: blue;
+}
+.log-DEBUG {
+  color: gray;
+}
+.cntr-true {
+  color: lightgray;
 }
 </style>

@@ -22,6 +22,7 @@ public class SheetInfo {
    public String cntrEndDate;
    public String cntrMonthSum;
    public String cntrYearSum;
+   public boolean isExists;
 
    public List<PropertyInfo> property = new ArrayList<>();
 
@@ -34,6 +35,9 @@ public class SheetInfo {
             inn = cellText.substring(INN.length()).trim();
         } else if (cellText.startsWith("№ договора аренды:")) {
             cntrNum = cellText.substring(CNTR_NUM.length()).trim();
+            if (cntrNum.equals("б/н")) {
+                cntrNum = "б/н (НФ)";
+            }
         } else if (cellText.startsWith("Дата заключения договора аренды:")) {
             cntrStartDate = cellText.substring(CNTR_START_DATE.length()).trim();
         } else if (cellText.startsWith("Дата расторжения договора аренды:")) {

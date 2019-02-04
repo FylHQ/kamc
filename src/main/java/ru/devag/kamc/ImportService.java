@@ -5,26 +5,32 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ImportService {
    private static Logger logger = LoggerFactory.getLogger(ImportService.class);
+
+   public static String CADNUM = "\\d{2}:\\d{2}:\\d{7}:\\d{1,}$";
 
    @PersistenceContext
    private EntityManager entityManager;
@@ -62,6 +68,19 @@ public class ImportService {
    @Autowired
    I3ObjBstRepository objBstRepo;
 
+   @Autowired
+   I3AprmComponentRepository aprmRepo;
+
+   @Autowired
+   I3NetwComponentRepository netwRepo;
+
+   @Autowired
+   I3LandComponentRepository landRepo;
+
+   Map<Long, Map<String, List<I3Object>>> subjectsObj = new HashMap<>();
+   //Map<String, List<I3Object>> allObj = null;
+   Map<String, List<Long>> allObj = null;
+
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
    private Long landlordId = -1L;
@@ -69,6 +88,9 @@ public class ImportService {
    private Long lptyClfId = -1L;
 
    public void initConstants() {
+      if (allObj != null)
+         return;
+
       I3Category cat = catRepo.findByCatCode("LPTY");
       lptyCatId = cat.getId();
 
@@ -80,6 +102,18 @@ public class ImportService {
          logger.error("Не найден арендодатель");
       }
       landlordId = landlordList.get(0).getId();
+
+      logger.info("Чтение описаний всех объектов. Начало");
+      allObj = new HashMap<>();
+      Iterable<I3Object> it = objRepo.findAll();
+      logger.info("Чтение описаний всех объектов. Окончание");
+      for (I3Object o: it) {
+         String descr = o.getObjDescription();
+         if (descr != null) {
+            allObj.computeIfAbsent(descr.toLowerCase().trim(), f -> new ArrayList<>())
+               .add(o.getId());
+         }
+      }
    }
 
 
@@ -91,36 +125,22 @@ public class ImportService {
       return cache.get(code);
    }
 
-   public String importSheets(List<SheetInfo> sheets) {
+   @Transactional
+   public void importSheet(SheetInfo sheet) {
       initConstants();
 
-      for (SheetInfo sheet : sheets) {
-         if (StringUtils.isEmpty(sheet.inn)) {
-            logger.info("Не указан ИНН: {}", sheet.subject);
-         } else {
-            Long sbjId = getSbjId(sheet);
-            if (sbjId > 0) {
-               try {
-                  importSheet(sheet);
-                  entityManager.flush();
-                  logger.info("Импорт [{}]: OK", sheet.cntrNum);
-               } catch (Exception e) {
-                  logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e.getLocalizedMessage());
-                  throw e;
-               }
-            }
-         }
-      }
-      return "OK";
-   }
+      Long sbjId = getSbjId(sheet);
+      if (sbjId < 0)
+         return;
 
-   private void importSheet(SheetInfo sheet) {
+      logger.info("Импорт [{}]", sheet.cntrNum);
+
       SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
       I3Basement bst = new I3Basement();
       I3LptyComponent lpty = new I3LptyComponent();
 
-      bst.setBstNumber(sheet.cntrNum.equals("б/н") ? "б/н (НФ)" : sheet.cntrNum);
+      bst.setBstNumber(sheet.cntrNum);
       bst.setCatCategoryId(lptyCatId);
       bst.setStsStatusId(1L);
       
@@ -153,7 +173,7 @@ public class ImportService {
       sbjBstRepo.save(sbjBst);
 
       sbjBst = new I3SbjBst();
-      sbjBst.setSbjSubjectId(landlordId);
+      sbjBst.setSbjSubjectId(sbjId);
       sbjBst.setBstBasementId(bst.getId());
       sbjBst.setSbbType(4109L);
       sbjBstRepo.save(sbjBst);
@@ -164,7 +184,50 @@ public class ImportService {
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
 
+      Map<String, List<I3Object>> sbjObjs = 
+         subjectsObj.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId)
+            .stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
+      
       for (PropertyInfo property: sheet.property) {
+         Long objId = null;
+         List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
+         if (aprms.size() > 0) {
+            logger.info("ok aprm cad: {}", property.propName);
+            objId = aprms.get(0).getObjObjectId();
+         } else {
+            List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
+            if (netws.size() > 0) {
+               logger.info("ok netw cad: {}", property.propName);
+               Long landId = netws.get(0).getLndLandComponentId();
+               Optional<I3LandComponent> optLand = landRepo.findById(landId);
+               if (optLand.isPresent()) {
+                  objId = optLand.get().getId();
+               }
+            } else {
+               if (sbjObjs.containsKey(property.propName.toLowerCase())) {
+                  logger.info("ok sbj: {}", property.propName);
+                  objId = sbjObjs.get(property.propName.toLowerCase()).get(0).getId();
+               } else {
+                  if (allObj.containsKey(property.propName.toLowerCase())) {
+                     logger.warn("ok all: {}", property.propName);
+                     objId = allObj.get(property.propName.toLowerCase()).get(0);
+                  } else {
+                     logger.error("no: {}", property.propName);
+                  }
+               }
+            }
+         }
+
+         if (objId == null) {
+            throw new RuntimeException("Не найден хотя бы один объект");
+         }
+
+         I3ObjBst objBst = new I3ObjBst();
+         objBst.setObbType(2105L);
+         objBst.setObjObjectId(objId);
+         objBst.setBstBasementId(bst.getId());
+         objBstRepo.save(objBst);
+
          //objRepo.findByObjDescriptionIgnoreCase(property.propName);
       }
 
@@ -187,5 +250,13 @@ public class ImportService {
       }
       logger.error("Не удалось найти субъекта: {}", sheet.subject);
       return -1L;
+   }
+
+   public static String getCadnum(String val) {
+      if (val.matches(CADNUM)) {
+         return val.substring(0, 14) + StringUtils.leftPad(val.substring(14), 5, "0");
+      } else {
+         return val;
+      }
    }
 }
