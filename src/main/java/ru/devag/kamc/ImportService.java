@@ -165,7 +165,7 @@ public class ImportService {
       contractorRepo.save(sbjContractor);
 
       for (PropertyInfo property: sheet.property) {
-         objRepo.findByObjDescriptionIgnoreCase(property.propName);
+         //objRepo.findByObjDescriptionIgnoreCase(property.propName);
       }
 
    }
