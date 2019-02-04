@@ -184,41 +184,11 @@ public class ImportService {
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
 
-      Map<String, List<I3Object>> sbjObjs = 
-         subjectsObj.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId)
-            .stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
       
       for (PropertyInfo property: sheet.property) {
-         Long objId = null;
-         List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
-         if (aprms.size() > 0) {
-            logger.info("ok aprm cad: {}", property.propName);
-            objId = aprms.get(0).getObjObjectId();
-         } else {
-            List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
-            if (netws.size() > 0) {
-               logger.info("ok netw cad: {}", property.propName);
-               Long landId = netws.get(0).getLndLandComponentId();
-               Optional<I3LandComponent> optLand = landRepo.findById(landId);
-               if (optLand.isPresent()) {
-                  objId = optLand.get().getId();
-               }
-            } else {
-               if (sbjObjs.containsKey(property.propName.toLowerCase())) {
-                  logger.info("ok sbj: {}", property.propName);
-                  objId = sbjObjs.get(property.propName.toLowerCase()).get(0).getId();
-               } else {
-                  if (allObj.containsKey(property.propName.toLowerCase())) {
-                     logger.warn("ok all: {}", property.propName);
-                     objId = allObj.get(property.propName.toLowerCase()).get(0);
-                  } else {
-                     logger.error("no: {}", property.propName);
-                  }
-               }
-            }
-         }
+         Long objId = getObjId(property, sbjId);
 
-         if (objId == null) {
+         if (objId == null || objId < 0) {
             throw new RuntimeException("Не найден хотя бы один объект");
          }
 
@@ -231,6 +201,41 @@ public class ImportService {
          //objRepo.findByObjDescriptionIgnoreCase(property.propName);
       }
 
+   }
+
+   private Long getObjId(PropertyInfo property, Long sbjId) {
+      List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
+      if (aprms.size() > 0) {
+         logger.info("ok aprm cad: {}", property.propName);
+         return aprms.get(0).getObjObjectId();
+      } 
+      
+      List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
+      if (netws.size() > 0) {
+         logger.info("ok netw cad: {}", property.propName);
+         Long landId = netws.get(0).getLndLandComponentId();
+         Optional<I3LandComponent> optLand = landRepo.findById(landId);
+         if (optLand.isPresent()) {
+            return optLand.get().getId();
+         }
+      }
+
+      Map<String, List<I3Object>> sbjObjs = subjectsObj.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId)
+      .stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
+      
+      if (sbjObjs.containsKey(property.propName.toLowerCase())) {
+         logger.info("ok sbj: {}", property.propName);
+         return sbjObjs.get(property.propName.toLowerCase()).get(0).getId();
+      }
+
+      if (allObj.containsKey(property.propName.toLowerCase())) {
+         logger.warn("ok all: {}", property.propName);
+         return allObj.get(property.propName.toLowerCase()).get(0);
+      }
+
+      logger.error("no: {}", property.propName);
+
+      return -1L;
    }
 
    private Long getSbjId(SheetInfo sheet) {
