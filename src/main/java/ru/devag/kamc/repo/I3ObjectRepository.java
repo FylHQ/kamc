@@ -22,4 +22,10 @@ public interface I3ObjectRepository extends CrudRepository<I3Object, Long> {
    @Query("select obj from I3Object obj")
    List<I3Object> getAll();
 
+   @Query(nativeQuery = true, value = "select obj_id from i3_v_obj_last_cost where balance_cost = ?1")
+   List<Long> getIdByLastCost(Double lastCost);
+
+   @Query(nativeQuery = true, value = "select obj_id, balance_cost from i3_v_obj_last_cost")
+   List<Object[]> getAllLastCost();
+
 }

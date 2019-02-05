@@ -8,12 +8,8 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BookInfo {
-   private static Logger logger = LoggerFactory.getLogger(MainController.class);
-
    public List<SheetInfo> sheets = new ArrayList<>();
 
    public BookInfo(XSSFWorkbook workbook) {

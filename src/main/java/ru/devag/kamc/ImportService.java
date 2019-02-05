@@ -9,21 +9,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,9 +78,11 @@ public class ImportService {
    @Autowired
    I3LandComponentRepository landRepo;
 
+   Map<Long, List<I3Object>> subjectsObjId = new HashMap<>();
    Map<Long, Map<String, List<I3Object>>> subjectsObj = new HashMap<>();
    //Map<String, List<I3Object>> allObj = null;
-   Map<String, List<Long>> allObj = null;
+   Map<String, Set<Long>> allObj = null;
+   List<Object[]> allCost = null;
 
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
@@ -88,7 +91,7 @@ public class ImportService {
    private Long lptyClfId = -1L;
 
    public void initConstants() {
-      if (allObj != null)
+      if (lptyCatId > 0)
          return;
 
       I3Category cat = catRepo.findByCatCode("LPTY");
@@ -102,18 +105,6 @@ public class ImportService {
          logger.error("Не найден арендодатель");
       }
       landlordId = landlordList.get(0).getId();
-
-      logger.info("Чтение описаний всех объектов. Начало");
-      allObj = new HashMap<>();
-      Iterable<I3Object> it = objRepo.findAll();
-      logger.info("Чтение описаний всех объектов. Окончание");
-      for (I3Object o: it) {
-         String descr = o.getObjDescription();
-         if (descr != null) {
-            allObj.computeIfAbsent(descr.toLowerCase().trim(), f -> new ArrayList<>())
-               .add(o.getId());
-         }
-      }
    }
 
 
@@ -188,15 +179,21 @@ public class ImportService {
       for (PropertyInfo property: sheet.property) {
          Long objId = getObjId(property, sbjId);
 
-         if (objId == null || objId < 0) {
-            throw new RuntimeException("Не найден хотя бы один объект");
+         if (objId != null && objId > 0) {
+            I3ObjBst objBst = new I3ObjBst();
+            objBst.setObbType(2105L);
+            objBst.setObjObjectId(objId);
+            objBst.setBstBasementId(bst.getId());
+            objBstRepo.save(objBst);
+         } else {
+            //if (property.propCost != null && property.propCost >= 50000) {
+               logger.error("no: {}", property.propName);
+               throw new RuntimeException("Не найден хотя бы один объект");
+            //} else {
+            //   logger.warn("ignore < 50000");
+            //}
          }
 
-         I3ObjBst objBst = new I3ObjBst();
-         objBst.setObbType(2105L);
-         objBst.setObjObjectId(objId);
-         objBst.setBstBasementId(bst.getId());
-         objBstRepo.save(objBst);
 
          //objRepo.findByObjDescriptionIgnoreCase(property.propName);
       }
@@ -216,26 +213,97 @@ public class ImportService {
          Long landId = netws.get(0).getLndLandComponentId();
          Optional<I3LandComponent> optLand = landRepo.findById(landId);
          if (optLand.isPresent()) {
-            return optLand.get().getId();
+            return optLand.get().getObjObjectId();
          }
       }
 
-      Map<String, List<I3Object>> sbjObjs = subjectsObj.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId)
-      .stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
+      List<I3Object> sbjObjIds = subjectsObjId.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId));
+      //Map<String, List<I3Object>> sbjObjProps = subjectsObj.getOrDefault(sbjId, sbjObjIds
+      //.stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
       
-      if (sbjObjs.containsKey(property.propName.toLowerCase())) {
+      Optional<I3Object> objBySbjRtn = sbjObjIds
+      .stream()
+      .parallel()
+      .filter(obj -> obj.getObjDescription() != null && obj.getObjDescription().toLowerCase().trim().equalsIgnoreCase(property.propName.toLowerCase())).findAny();
+      
+      if (objBySbjRtn.isPresent()) {
          logger.info("ok sbj: {}", property.propName);
-         return sbjObjs.get(property.propName.toLowerCase()).get(0).getId();
+         return objBySbjRtn.get().getId();
+      }
+      /*if (sbjObjProps.containsKey(property.propName.toLowerCase())) {
+         logger.info("ok sbj: {}", property.propName);
+         return sbjObjProps.get(property.propName.toLowerCase()).get(0).getId();
+      }*/
+
+      if (property.propCost != null) {
+         Set<Long> allObjByCost = getObjByCost(property.propCost);
+         if (allObjByCost.size() == 1) {
+            logger.info("ok by all cost: {} [{}]", property.propName, property.propCost);
+            return allObjByCost.iterator().next();
+         } else if (allObjByCost.size() > 1) {
+            List<I3Object> sbjObjByCost = sbjObjIds.stream().parallel()
+            .filter(obj -> allObjByCost.contains(obj.getId())).collect(Collectors.toList());
+
+            if (sbjObjByCost.size() == 1) {
+               logger.info("ok by cost: {} [{}]", property.propName, property.propCost);
+               return sbjObjByCost.get(0).getId();
+            }
+            logger.warn("multiple by cost: {} [{}]", allObjByCost.size(), property.propCost);
+         }
       }
 
-      if (allObj.containsKey(property.propName.toLowerCase())) {
-         logger.warn("ok all: {}", property.propName);
-         return allObj.get(property.propName.toLowerCase()).get(0);
+      Set<Long> allObjByName = getAllObj().get(property.propName.toLowerCase());
+      if (allObjByName != null) {
+         if (allObjByName.size() == 1) {
+            logger.info("ok by all name: {}", property.propName);   
+            return allObjByName.iterator().next();
+         } else if (allObjByName.size() > 1) {
+            List<I3Object> sbjObjByName = sbjObjIds.stream().parallel()
+            .filter(obj -> allObjByName.contains(obj.getId())).collect(Collectors.toList());
+            if (sbjObjByName.size() == 1) {
+               logger.info("ok by name: {}", property.propName);
+               return sbjObjByName.get(0).getId();
+            }
+            logger.warn("multiple by name: {}", property.propName);
+         }
       }
-
-      logger.error("no: {}", property.propName);
 
       return -1L;
+   }
+
+   private Map<String, Set<Long>> getAllObj() {
+      if (allObj == null) {
+         logger.info("Чтение описаний всех объектов. Начало");
+         allObj = new HashMap<>();
+         Iterable<I3Object> it = objRepo.findAll();
+         logger.info("Чтение описаний всех объектов. Окончание");
+         for (I3Object o: it) {
+            String descr = o.getObjDescription();
+            if (descr != null) {
+               allObj.computeIfAbsent(descr.toLowerCase().trim(), f -> new HashSet<>())
+                  .add(o.getId());
+            }
+         }
+      }
+
+      return allObj;
+   }
+
+   private List<Object[]> getAllCost() {
+      if (allCost == null) {
+         logger.info("Чтение стоимостей всех объектов. Начало");
+         allCost = objRepo.getAllLastCost();
+         logger.info("Чтение стоимостей всех объектов. Окончание");
+      }
+      return allCost;
+   }
+   
+   private Set<Long> getObjByCost(Double cost) {
+      return getAllCost().stream()
+      .parallel()
+      .filter(item -> item[1] != null && ((BigDecimal)item[1]).doubleValue() == cost)
+      .map(item -> ((BigDecimal)item[0]).longValue())
+      .collect(Collectors.toSet());
    }
 
    private Long getSbjId(SheetInfo sheet) {

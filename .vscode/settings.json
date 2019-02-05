@@ -16,6 +16,7 @@
         "**/.project": true,
         "**/.settings": true,
         "**/.factorypath": true
-      }
+      },
+      "python.linting.pylintEnabled": true
       
 }

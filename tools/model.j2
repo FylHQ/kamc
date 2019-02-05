@@ -4,7 +4,8 @@ import javax.persistence.*;
 import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Entity(name="{{db_name}}")
+@Entity()
+@Table(name="{{db_name}}")
 public class {{name}} {
 {% for col in cols %}
    @Column(name = "{{col.db_name}}"{{', nullable = false' if not col.nullable else ''}})

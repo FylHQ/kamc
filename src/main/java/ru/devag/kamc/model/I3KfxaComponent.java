@@ -1,8 +1,6 @@
 package ru.devag.kamc.model;
 
 import javax.persistence.*;
-import java.util.Date;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity(name="i3_kfxa_component")
 public class I3KfxaComponent {

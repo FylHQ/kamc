@@ -1,27 +1,22 @@
 package ru.devag.kamc;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -29,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -200,15 +194,30 @@ public class MainController {
             "where sbr.sbjSubjectId = :sbjId");
         q.setParameter("sbjId", 30645764L);
         List<I3Object> obj = q.getResultList();*/
-        List<I3Object> objs = objRepo.findByRtnSbj(30645764L);
-        Map<String, List<I3Object>> result =
-            objs.stream().collect(Collectors.groupingBy(I3Object::getObjDescription));
+        //List<I3Object> objs = objRepo.findByRtnSbj(30645764L);
+        //Map<String, List<I3Object>> result =
+        //    objs.stream().collect(Collectors.groupingBy(I3Object::getObjDescription));
         //Map<String, List<Long>> descrIds = objs.stream().
 
         //objs.stream().forEach(action);
         //logger.info("{}", obj.get(0)[1]);
         //List<I3Object> obj = commonRepo.find1(30645764L);
-        return objs.size();
+
+        logger.info("Start last cost");
+        List<Object[]> objs = objRepo.getAllLastCost();
+        logger.info("End last cost");
+
+        List<Object[]> newObj = objs
+        .stream()
+        .parallel()
+        .filter(item -> item[1] != null && ((BigDecimal)item[1]).doubleValue() == 2280551.57)
+        .collect(Collectors.toList());
+        logger.info("Found last cost: {}", newObj.size());
+        
+
+
+
+        return newObj.size();
     }
 
     
