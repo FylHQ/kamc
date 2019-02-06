@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import ru.devag.kamc.PropertyInfo.PropType;
 
 public class BookInfo {
    public List<SheetInfo> sheets = new ArrayList<>();
@@ -78,6 +81,15 @@ public class BookInfo {
               propertyInfo.set(cell, indexes);
           }
           if (propertyInfo.propNum != null && !propertyInfo.propNum.equals("")) {
+              if (!StringUtils.isEmpty(propertyInfo.propArea)) {
+                propertyInfo.propType = PropType.APRM;
+              } else if (!StringUtils.isEmpty(propertyInfo.propLength)) {
+                propertyInfo.propType = PropType.NETW;
+              } else if (!StringUtils.isEmpty(propertyInfo.propYear)) {
+                propertyInfo.propType = PropType.TRAN;
+              } else {
+                propertyInfo.propType = PropType.KFXA;
+              }
               sheetInfo.property.add(propertyInfo);
           }
       }

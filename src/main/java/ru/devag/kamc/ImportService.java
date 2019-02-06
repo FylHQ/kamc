@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ru.devag.kamc.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
@@ -206,7 +207,7 @@ public class ImportService {
 
    private Long getObjId(PropertyInfo property, Long sbjId) {
       if (property.propCadnum != null) {
-         if (property.propArea != null) {
+         if (property.propType == PropType.APRM) {
             List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
             if (aprms.size() > 0) {
                logger.info("ok aprm cad: {}", property.propName);
@@ -214,7 +215,7 @@ public class ImportService {
             } 
          }
          
-         if (property.propLength != null) {
+         if (property.propType == PropType.NETW) {
             List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
             if (netws.size() > 0) {
                logger.info("ok netw cad: {}", property.propName);
@@ -227,24 +228,12 @@ public class ImportService {
          }
       }
 
-      List<I3Object> sbjObjIds = subjectsObjId.getOrDefault(sbjId, objRepo.findByRtnSbj(sbjId));
+      List<I3Object> sbjObjIds = subjectsObjId.computeIfAbsent(sbjId, f -> objRepo.findByRtnSbj(sbjId));
       //Map<String, List<I3Object>> sbjObjProps = subjectsObj.getOrDefault(sbjId, sbjObjIds
       //.stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
-      
-      Optional<I3Object> objBySbjRtn = sbjObjIds.stream().parallel()
-         .filter(obj -> obj.getObjDescription() != null && obj.getObjDescription().toLowerCase().trim().equalsIgnoreCase(property.propName.toLowerCase())).findAny();
-      
-      if (objBySbjRtn.isPresent()) {
-         logger.info("ok by sbj: {}", property.propName);
-         return objBySbjRtn.get().getId();
-      }
-      /*if (sbjObjProps.containsKey(property.propName.toLowerCase())) {
-         logger.info("ok sbj: {}", property.propName);
-         return sbjObjProps.get(property.propName.toLowerCase()).get(0).getId();
-      }*/
 
       if (property.propCost != null) {
-         Set<Long> allObjByCost = getObjByCost(property.propCost);
+         Set<Long> allObjByCost = getObjByCost(property);
          if (allObjByCost.size() == 1) {
             logger.info("ok by all cost: {} [{}]", property.propName, property.propCost);
             return allObjByCost.iterator().next();
@@ -259,6 +248,23 @@ public class ImportService {
             logger.warn("multiple by cost: {} [{}]", allObjByCost.size(), property.propCost);
          }
       }
+
+      
+      /*Optional<I3Object> objBySbjRtn = sbjObjIds.stream().parallel()
+         .filter(obj -> obj.getObjDescription() != null && 
+         obj.getObjDescription().toLowerCase().trim().equalsIgnoreCase(property.propName.toLowerCase()))
+         .findAny();
+      
+      if (objBySbjRtn.isPresent()) {
+         logger.info("ok by sbj: {}", property.propName);
+         return objBySbjRtn.get().getId();
+      }*/
+      /*if (sbjObjProps.containsKey(property.propName.toLowerCase())) {
+         logger.info("ok sbj: {}", property.propName);
+         return sbjObjProps.get(property.propName.toLowerCase()).get(0).getId();
+      }*/
+
+      
 
       Set<Long> allObjByName = getAllObj().get(property.propName.toLowerCase());
       if (allObjByName != null) {
@@ -306,10 +312,12 @@ public class ImportService {
       return allCost;
    }
    
-   private Set<Long> getObjByCost(Double cost) {
+   private Set<Long> getObjByCost(PropertyInfo property) {
       return getAllCost().stream()
       .parallel()
-      .filter(item -> item[1] != null && ((BigDecimal)item[1]).doubleValue() == cost)
+      .filter(item -> item[1] != null && 
+         ((BigDecimal)item[1]).doubleValue() == property.propCost &&
+         ((String)item[2]).equals(property.propType.toString()))
       .map(item -> ((BigDecimal)item[0]).longValue())
       .collect(Collectors.toSet());
    }

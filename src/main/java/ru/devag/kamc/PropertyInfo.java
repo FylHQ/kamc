@@ -9,6 +9,13 @@ import org.slf4j.LoggerFactory;
 public class PropertyInfo {
    private static Logger logger = LoggerFactory.getLogger(PropertyInfo.class);
 
+   public enum PropType {
+      APRM,
+      NETW,
+      TRAN,
+      KFXA
+   }
+
    public String propNum;
    public String propName = null;
    public String propAddress = null;
@@ -19,6 +26,8 @@ public class PropertyInfo {
    public String propMonthSum;
    public String propYearSum;
    public String propYear = null;
+
+   public PropType propType;
 
    void set(Cell cell, PropIndexes indexes) {
       int index = cell.getColumnIndex();

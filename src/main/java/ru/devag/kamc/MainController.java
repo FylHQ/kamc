@@ -187,8 +187,8 @@ public class MainController {
             }
         }
         if (ignored.size() > 0) {
-            logger.warn("Пропущено имущества: {}", ignored.size());
-            ignored.forEach(item -> logger.warn(item));
+            logger.debug("Пропущено имущества: {}", ignored.size());
+            ignored.forEach(item -> logger.debug(item));
         }
 
         //return importSvc.importSheets(sheets);
