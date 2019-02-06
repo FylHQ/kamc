@@ -33,3 +33,5 @@ package-lock.json
 .vscode/tasks.json
 /src/main/resources/static/dist/
 
+ojdbc*.jar
+*.xlsx
