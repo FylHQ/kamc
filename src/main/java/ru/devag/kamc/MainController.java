@@ -155,7 +155,7 @@ public class MainController {
     }
 
     @PostMapping("/import")
-    public String importBook(@RequestBody Map<String, Integer> sheetCodes) throws InterruptedException {
+    public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
         BookInfo bookInfo = importSvc.get("1");
         if (bookInfo == null) {
             return "Книга не загружена";
@@ -165,14 +165,18 @@ public class MainController {
             return "Предыдущий импорт еще не завершен";
         }*/
         
+        List<String> ignored = new ArrayList<>();
         List<SheetInfo> sheets = new ArrayList<>();
         for (SheetInfo sheet: bookInfo.sheets) {
-            if (sheetCodes.containsKey(sheet.sheetName)) {
+            if (ir.sheetCodes.containsKey(sheet.sheetName)) {
                 if (StringUtils.isEmpty(sheet.inn)) {
                     logger.error("Не указан ИНН: {}", sheet.subject);
                 } else {
                     try {
-                        importSvc.importSheet(sheet);
+                        importSvc.importSheet(sheet, 
+                            ir.settings.getOrDefault("ignoreCheap", false),
+                            ir.settings.getOrDefault("ignoreAll", false),
+                            ignored);
                         logger.info("Импорт [{}]: OK", sheet.cntrNum);
                      } catch (Exception e) {
                         logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e.getLocalizedMessage());
@@ -182,6 +186,11 @@ public class MainController {
                 sheets.add(sheet);
             }
         }
+        if (ignored.size() > 0) {
+            logger.warn("Пропущено имущества: {}", ignored.size());
+            ignored.forEach(item -> logger.warn(item));
+        }
+
         //return importSvc.importSheets(sheets);
         return "OK";
     }

@@ -18,6 +18,7 @@ import ru.devag.kamc.repo.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -117,7 +118,7 @@ public class ImportService {
    }
 
    @Transactional
-   public void importSheet(SheetInfo sheet) {
+   public void importSheet(SheetInfo sheet, boolean ignoreCheap, boolean ignoreAll, List<String> ignored) {
       initConstants();
 
       Long sbjId = getSbjId(sheet);
@@ -175,7 +176,6 @@ public class ImportService {
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
 
-      
       for (PropertyInfo property: sheet.property) {
          Long objId = getObjId(property, sbjId);
 
@@ -186,12 +186,16 @@ public class ImportService {
             objBst.setBstBasementId(bst.getId());
             objBstRepo.save(objBst);
          } else {
-            //if (property.propCost != null && property.propCost >= 50000) {
-               logger.error("no: {}", property.propName);
+            if (property.propCost == null && ignoreAll ||
+                  property.propCost != null && 
+                     (property.propCost < 50000 && (ignoreCheap || ignoreAll) ||
+                     property.propCost >= 50000 && ignoreAll)) {
+               ignored.add(sheet.cntrNum + ": " + property.propName);
+               logger.warn("ignore: {}", property.propName);
+            } else {
+               logger.error("not found: {}", property.propName);
                throw new RuntimeException("Не найден хотя бы один объект");
-            //} else {
-            //   logger.warn("ignore < 50000");
-            //}
+            }
          }
 
 
@@ -201,19 +205,25 @@ public class ImportService {
    }
 
    private Long getObjId(PropertyInfo property, Long sbjId) {
-      List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
-      if (aprms.size() > 0) {
-         logger.info("ok aprm cad: {}", property.propName);
-         return aprms.get(0).getObjObjectId();
-      } 
-      
-      List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
-      if (netws.size() > 0) {
-         logger.info("ok netw cad: {}", property.propName);
-         Long landId = netws.get(0).getLndLandComponentId();
-         Optional<I3LandComponent> optLand = landRepo.findById(landId);
-         if (optLand.isPresent()) {
-            return optLand.get().getObjObjectId();
+      if (property.propCadnum != null) {
+         if (property.propArea != null) {
+            List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
+            if (aprms.size() > 0) {
+               logger.info("ok aprm cad: {}", property.propName);
+               return aprms.get(0).getObjObjectId();
+            } 
+         }
+         
+         if (property.propLength != null) {
+            List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
+            if (netws.size() > 0) {
+               logger.info("ok netw cad: {}", property.propName);
+               Long landId = netws.get(0).getLndLandComponentId();
+               Optional<I3LandComponent> optLand = landRepo.findById(landId);
+               if (optLand.isPresent()) {
+                  return optLand.get().getObjObjectId();
+               }
+            }
          }
       }
 
@@ -221,13 +231,11 @@ public class ImportService {
       //Map<String, List<I3Object>> sbjObjProps = subjectsObj.getOrDefault(sbjId, sbjObjIds
       //.stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
       
-      Optional<I3Object> objBySbjRtn = sbjObjIds
-      .stream()
-      .parallel()
-      .filter(obj -> obj.getObjDescription() != null && obj.getObjDescription().toLowerCase().trim().equalsIgnoreCase(property.propName.toLowerCase())).findAny();
+      Optional<I3Object> objBySbjRtn = sbjObjIds.stream().parallel()
+         .filter(obj -> obj.getObjDescription() != null && obj.getObjDescription().toLowerCase().trim().equalsIgnoreCase(property.propName.toLowerCase())).findAny();
       
       if (objBySbjRtn.isPresent()) {
-         logger.info("ok sbj: {}", property.propName);
+         logger.info("ok by sbj: {}", property.propName);
          return objBySbjRtn.get().getId();
       }
       /*if (sbjObjProps.containsKey(property.propName.toLowerCase())) {

@@ -4,7 +4,7 @@
     <v-content>
       <v-container grid-list-xs fluid>
         <v-layout row wrap>
-          <v-flex xs12 sm6>
+          <v-flex xs10 sm5>
             <v-text-field label="Загрузить файл" @click='pickFile' v-model='imageName' prepend-icon='attach_file'></v-text-field>
             <input
               type="file"
@@ -13,13 +13,32 @@
               @change="onFilePicked"
             >
           </v-flex>
-          <v-flex xs12 sm6>
-            <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
+          <v-flex xs2 sm1>
             <v-progress-circular
               :indeterminate="isActive"
               v-if="isActive"
               color="primary"
-            ></v-progress-circular>
+            >
+            </v-progress-circular>
+          </v-flex>
+          <v-flex xs12 sm6>
+            <v-layout row wrap>
+              <v-flex sm12 md6>
+                <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
+              </v-flex>
+              <v-flex sm6 md3>
+                <v-checkbox caption
+                  v-model="importSettings.ignoreCheap"
+                  label="Игнорир. < 50000"
+                ></v-checkbox>
+              </v-flex>
+              <v-flex sm6 md3>
+                <v-checkbox
+                  v-model="importSettings.ignoreAll"
+                  label="Игнорир. любые"
+                ></v-checkbox>
+              </v-flex>
+            </v-layout>
           </v-flex>
         </v-layout>
         <v-layout row wrap>
@@ -125,7 +144,11 @@ export default {
       logtimestamp: new Date().getTime(),
       intervalLog: null,
       isImportEnabled: false,
-      isActive: false
+      isActive: false,
+      importSettings: {
+        ignoreCheap: false,
+        ignoreAll: false
+      }
     }
   },
   mounted: function() {
@@ -175,7 +198,7 @@ export default {
       let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
       self.isImportEnabled = false
       self.isActive = true
-      axios.post('/import', codes)
+      axios.post('/import', {sheetCodes: codes, settings: self.importSettings})
       .then(result => {
         self.logitems.push({message: "Результат: " + result.data})
         self.isImportEnabled = true
@@ -245,5 +268,9 @@ export default {
 }
 .cntr-true {
   color: lightgray;
+}
+
+.v-input--checkbox .v-label {
+  font-size: 8px;
 }
 </style>

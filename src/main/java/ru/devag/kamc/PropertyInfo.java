@@ -10,14 +10,15 @@ public class PropertyInfo {
    private static Logger logger = LoggerFactory.getLogger(PropertyInfo.class);
 
    public String propNum;
-   public String propName;
-   public String propAddress;
-   public String propArea;
-   public String propLength;
-   public String propCadnum;
-   public Double propCost;
+   public String propName = null;
+   public String propAddress = null;
+   public String propArea = null;
+   public String propLength = null;
+   public String propCadnum = null;
+   public Double propCost = null;
    public String propMonthSum;
    public String propYearSum;
+   public String propYear = null;
 
    void set(Cell cell, PropIndexes indexes) {
       int index = cell.getColumnIndex();
@@ -58,6 +59,8 @@ public class PropertyInfo {
          propMonthSum = cell.toString();
       } else if (index == indexes.yearSumIndex) {
          propYearSum = cell.toString();
+      } else if (index == indexes.yearIndex) {
+         propYear = cell.toString();
       }
    }
 
