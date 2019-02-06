@@ -4,4 +4,4 @@
       :on-success="onSuccess"
       <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
 
-test git pwd cache
+test git pwd cache2
