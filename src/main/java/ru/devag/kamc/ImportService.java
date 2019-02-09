@@ -19,14 +19,13 @@ import ru.devag.kamc.repo.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,6 +84,9 @@ public class ImportService {
    //Map<String, List<I3Object>> allObj = null;
    Map<String, Set<Long>> allObj = null;
    List<Object[]> allCost = null;
+   
+   Map<String, Stack<Long>> aprmCadObjIds = new HashMap<>();
+   Map<String, Stack<Long>> netwCadObjIds = new HashMap<>();
 
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
@@ -107,6 +109,17 @@ public class ImportService {
          logger.error("Не найден арендодатель");
       }
       landlordId = landlordList.get(0).getId();
+
+      aprmRepo.findByApmCadastralInfoNotNull().forEach(aprm -> {
+         aprmCadObjIds.computeIfAbsent(aprm.getApmCadastralInfo(), k -> new Stack<>())
+            .push(aprm.getObject().getId());
+      });
+
+      
+      netwRepo.findObjectsNetCadastralInfoNotNull().forEach(tuple -> {
+         netwCadObjIds.computeIfAbsent(tuple.get(0, I3NetwComponent.class).getNetCadastralInfo(), k -> new Stack<>())
+            .push(tuple.get(1, I3Object.class).getId());
+      });
    }
 
 
@@ -208,22 +221,18 @@ public class ImportService {
    private Long getObjId(PropertyInfo property, Long sbjId) {
       if (property.propCadnum != null) {
          if (property.propType == PropType.APRM) {
-            List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfo(property.propCadnum);
-            if (aprms.size() > 0) {
+            Stack<Long> aprms = aprmCadObjIds.get(property.propCadnum);
+            if (aprms != null && !aprms.empty()) {
                logger.info("ok aprm cad: {}", property.propName);
-               return aprms.get(0).getObjObjectId();
-            } 
+               return aprms.pop();
+            }
          }
          
          if (property.propType == PropType.NETW) {
-            List<I3NetwComponent> netws = netwRepo.findByNetCadastralInfo(property.propCadnum);
-            if (netws.size() > 0) {
+            Stack<Long> netws = netwCadObjIds.get(property.propCadnum);
+            if (netws != null && !netws.empty()) {
                logger.info("ok netw cad: {}", property.propName);
-               Long landId = netws.get(0).getLndLandComponentId();
-               Optional<I3LandComponent> optLand = landRepo.findById(landId);
-               if (optLand.isPresent()) {
-                  return optLand.get().getObjObjectId();
-               }
+               return netws.pop();
             }
          }
       }
@@ -348,4 +357,6 @@ public class ImportService {
          return val;
       }
    }
+
+   
 }

@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -60,6 +59,11 @@ public class MainController {
     @Autowired
     I3BasementRepository bstRepo;
  
+    @Autowired
+    I3AprmComponentRepository aprmRepo;
+
+    @Autowired
+    I3NetwComponentRepository netwRepo;
 
     //ConcurrentHashMap<String, CompletableFuture<String>> impResults = new ConcurrentHashMap<>();
     CompletableFuture<String> impResult = null;
@@ -229,5 +233,25 @@ public class MainController {
         return newObj.size();
     }
 
+    @GetMapping("/test2")
+    public Long test2() {
+        //List<I3AprmComponent> aprms = aprmRepo.findByApmCadastralInfoNotNull();
+        //return aprms.get(0).getObject().getId();
+        //Optional<I3AprmComponent> a = aprmRepo.findByObjectObjNumber("ПМ-3164");
+        //return a.get().getId();
+
+        
+        
+        //List<Tuple> obj = netwRepo.findObjectsNetCadastralCostNotNull();
+        //return obj.get(0).get(1, I3Object.class).getId();
+
+        importSvc.initConstants();
+        
+        //logger.info("{}", importSvc.netwCadObjIds.size());
+        return 1L;
+        
+        //List<I3NetwComponent> netws = netwRepo.find2();
+        //return netws.get(0).getLand().getId();
+    }
     
 }

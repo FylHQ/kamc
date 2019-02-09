@@ -7,4 +7,5 @@ import ru.devag.kamc.model.I3AprmComponent;
 
 public interface I3AprmComponentRepository extends CrudRepository<I3AprmComponent, Long> {
    List<I3AprmComponent> findByApmCadastralInfo(String apmCadastralInfo);
+   List<I3AprmComponent> findByApmCadastralInfoNotNull();
 }

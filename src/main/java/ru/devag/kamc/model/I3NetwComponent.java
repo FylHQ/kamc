@@ -3,7 +3,8 @@ package ru.devag.kamc.model;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name="i3_netw_component")
+@Entity
+@Table(name = "i3_netw_component")
 public class I3NetwComponent {
 
    @Column(name = "i3net_netw_component_id", nullable = false)
@@ -12,8 +13,9 @@ public class I3NetwComponent {
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
    private Long id;
 
-   @Column(name = "i3lnd_land_component_id", nullable = false)
-   private Long lndLandComponentId;
+   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3lnd_land_component_id", nullable = false)
+   private I3LandComponent land;
 
    @Column(name = "i3cfv_classifier_value_id", nullable = false)
    private Long cfvClassifierValueId;
@@ -61,14 +63,6 @@ public class I3NetwComponent {
 
    public void setId(Long id) {
       this.id = id;
-   }
-
-   public Long getLndLandComponentId() {
-      return lndLandComponentId;
-   }
-
-   public void setLndLandComponentId(Long lndLandComponentId) {
-      this.lndLandComponentId = lndLandComponentId;
    }
 
    public Long getCfvClassifierValueId() {
@@ -173,6 +167,14 @@ public class I3NetwComponent {
 
    public void setNetIsMovable(String netIsMovable) {
       this.netIsMovable = netIsMovable;
+   }
+
+   public I3LandComponent getLand() {
+      return land;
+   }
+
+   public void setLand(I3LandComponent land) {
+      this.land = land;
    }
 
 }

@@ -12,8 +12,9 @@ public class I3AprmComponent {
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
    private Long id;
 
-   @Column(name = "i3obj_object_id", nullable = false)
-   private Long objObjectId;
+   @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3obj_object_id", nullable = false)
+   private I3Object object;
 
    @Column(name = "i3apm_common_area")
    private Double apmCommonArea;
@@ -100,14 +101,6 @@ public class I3AprmComponent {
 
    public void setId(Long id) {
       this.id = id;
-   }
-
-   public Long getObjObjectId() {
-      return objObjectId;
-   }
-
-   public void setObjObjectId(Long objObjectId) {
-      this.objObjectId = objObjectId;
    }
 
    public Double getApmCommonArea() {
@@ -316,6 +309,14 @@ public class I3AprmComponent {
 
    public void setApmCadastralCost(Double apmCadastralCost) {
       this.apmCadastralCost = apmCadastralCost;
+   }
+
+   public I3Object getObject() {
+      return object;
+   }
+
+   public void setObject(I3Object object) {
+      this.object = object;
    }
 
 }
