@@ -19,11 +19,13 @@ import ru.devag.kamc.repo.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -79,14 +81,18 @@ public class ImportService {
    @Autowired
    I3LandComponentRepository landRepo;
 
-   Map<Long, List<I3Object>> subjectsObjId = new HashMap<>();
+   Map<Long, Set<Long>> subjectsObjId = new HashMap<>();
    Map<Long, Map<String, List<I3Object>>> subjectsObj = new HashMap<>();
    //Map<String, List<I3Object>> allObj = null;
    Map<String, Set<Long>> allObj = null;
+   Map<String, Set<Long>> allObjNoSpace = null;
    List<Object[]> allCost = null;
    
    Map<String, Stack<Long>> aprmCadObjIds = new HashMap<>();
    Map<String, Stack<Long>> netwCadObjIds = new HashMap<>();
+
+   Map<String, Stack<Long>> aprmAddrObjIds = new HashMap<>();
+   Map<String, Stack<Long>> netwAddrObjIds = new HashMap<>();
 
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
@@ -115,13 +121,26 @@ public class ImportService {
             .push(aprm.getObject().getId());
       });
 
+      aprmRepo.findAllAddresses().stream()
+         .filter(tuple -> !StringUtils.isEmpty(tuple.get(1, String.class)))
+         .forEach(tuple -> {
+            aprmAddrObjIds.computeIfAbsent(tuple.get(1, String.class).toLowerCase(), k -> new Stack<>())
+            .push(tuple.get(0, BigDecimal.class).longValue());
+         });
       
       netwRepo.findObjectsNetCadastralInfoNotNull().forEach(tuple -> {
          netwCadObjIds.computeIfAbsent(tuple.get(0, I3NetwComponent.class).getNetCadastralInfo(), k -> new Stack<>())
             .push(tuple.get(1, I3Object.class).getId());
       });
-   }
 
+      netwRepo.findAllAddresses().stream()
+         .filter(tuple -> !StringUtils.isEmpty(tuple.get(1, String.class)))
+         .forEach(tuple -> {
+            netwAddrObjIds.computeIfAbsent(tuple.get(1, String.class).toLowerCase(), k -> new Stack<>())
+            .push(tuple.get(0, BigDecimal.class).longValue());
+         });
+
+   }
 
    public void put(String code, BookInfo bookInfo) {
       cache.put(code, bookInfo);
@@ -139,7 +158,7 @@ public class ImportService {
       if (sbjId < 0)
          return;
 
-      logger.info("Импорт [{}]", sheet.cntrNum);
+      //logger.info("Импорт [{}]", sheet.cntrNum);
 
       SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -220,41 +239,49 @@ public class ImportService {
 
    private Long getObjId(PropertyInfo property, Long sbjId) {
       if (property.propCadnum != null) {
-         if (property.propType == PropType.APRM) {
+         if (property.propType == PropType.APRM || property.propType != PropType.NETW) {
             Stack<Long> aprms = aprmCadObjIds.get(property.propCadnum);
             if (aprms != null && !aprms.empty()) {
-               logger.info("ok aprm cad: {}", property.propName);
+               //logger.info("ok aprm cad: {}", property.propName);
                return aprms.pop();
             }
-         }
+         } 
          
-         if (property.propType == PropType.NETW) {
+         if (property.propType == PropType.NETW || property.propType != PropType.APRM) {
             Stack<Long> netws = netwCadObjIds.get(property.propCadnum);
             if (netws != null && !netws.empty()) {
-               logger.info("ok netw cad: {}", property.propName);
+               //logger.info("ok netw cad: {}", property.propName);
                return netws.pop();
             }
          }
       }
 
-      List<I3Object> sbjObjIds = subjectsObjId.computeIfAbsent(sbjId, f -> objRepo.findByRtnSbj(sbjId));
+      
+      Set<Long> sbjObjIds = subjectsObjId.get(sbjId);
+      if (sbjObjIds == null) {
+         sbjObjIds = objRepo.findByRtnSbj(sbjId).stream().map(obj -> obj.getId()).collect(Collectors.toSet());
+         subjectsObjId.put(sbjId, sbjObjIds);
+      }
+      //List<Long> sbjObjIds = subjectsObjId.computeIfAbsent(sbjId, f -> );
       //Map<String, List<I3Object>> sbjObjProps = subjectsObj.getOrDefault(sbjId, sbjObjIds
       //.stream().collect(Collectors.groupingBy(o -> o.getObjDescription().toLowerCase().trim())));
 
-      if (property.propCost != null) {
-         Set<Long> allObjByCost = getObjByCost(property);
-         if (allObjByCost.size() == 1) {
-            logger.info("ok by all cost: {} [{}]", property.propName, property.propCost);
-            return allObjByCost.iterator().next();
-         } else if (allObjByCost.size() > 1) {
-            List<I3Object> sbjObjByCost = sbjObjIds.stream().parallel()
-            .filter(obj -> allObjByCost.contains(obj.getId())).collect(Collectors.toList());
+      if (property.propCost != null && property.propCost > 10) {
+         Set<Long> allObjIdByCost = getObjByCost(property);
+         if (allObjIdByCost.size() == 1) {
+            //logger.info("ok by all cost: {} [{}]", property.propName, property.propCost);
+            return allObjIdByCost.iterator().next();
+         } else if (allObjIdByCost.size() > 1) {
+            Optional<Long> sbjObjIdByCost = sbjObjIds.stream().parallel()
+               .filter(objId -> allObjIdByCost.contains(objId)).findAny();
 
-            if (sbjObjByCost.size() == 1) {
-               logger.info("ok by cost: {} [{}]", property.propName, property.propCost);
-               return sbjObjByCost.get(0).getId();
+            if (sbjObjIdByCost.isPresent()) {
+               logger.warn("ok by cost {}; [{}]", property.propCost, property.propName);
+               sbjObjIds.remove(sbjObjIdByCost.get());
+               return sbjObjIdByCost.get();
+               //return sbjObjByCost.get(0);
             }
-            logger.warn("multiple by cost: {} [{}]", allObjByCost.size(), property.propCost);
+            logger.warn("multiple by cost {} [{}]", property.propCost, allObjIdByCost.size());
          }
       }
 
@@ -275,29 +302,65 @@ public class ImportService {
 
       
 
-      Set<Long> allObjByName = getAllObj().get(property.propName.toLowerCase());
-      if (allObjByName != null) {
-         if (allObjByName.size() == 1) {
-            logger.info("ok by all name: {}", property.propName);   
-            return allObjByName.iterator().next();
-         } else if (allObjByName.size() > 1) {
-            List<I3Object> sbjObjByName = sbjObjIds.stream().parallel()
-            .filter(obj -> allObjByName.contains(obj.getId())).collect(Collectors.toList());
-            if (sbjObjByName.size() == 1) {
-               logger.info("ok by name: {}", property.propName);
-               return sbjObjByName.get(0).getId();
+      Long objIdByName = getObjByName(property, true, sbjObjIds);
+      if (objIdByName > 0)
+         return objIdByName;
+
+      if (property.propAddress != null) {
+         if (property.propType == PropType.APRM || property.propType != PropType.NETW) {
+            Stack<Long> aprms = aprmAddrObjIds.get(property.propAddress.toLowerCase());
+            if (aprms != null && !aprms.empty()) {
+               //logger.info("ok aprm addr: {} [{}]", property.propName, property.propAddress);
+               return aprms.pop();
             }
-            logger.warn("multiple by name: {}", property.propName);
+         } 
+         
+         if (property.propType == PropType.NETW || property.propType != PropType.APRM) {
+            Stack<Long> netws = netwAddrObjIds.get(property.propAddress.toLowerCase());
+            if (netws != null && !netws.empty()) {
+               //logger.info("ok netw addr: {} [{}]", property.propName, property.propAddress);
+               return netws.pop();
+            }
          }
       }
+
+      objIdByName = getObjByName(property, false, sbjObjIds);
+      if (objIdByName > 0)
+         return objIdByName;
 
       return -1L;
    }
 
-   private Map<String, Set<Long>> getAllObj() {
+   private Long getObjByName(PropertyInfo property, boolean withSpaces, Set<Long> sbjObjIds) {
+      String name = withSpaces ? property.propName.toLowerCase() : property.propName.toLowerCase().replaceAll("\\s", ""); 
+      Set<Long> objIdByName = getAllObj(withSpaces).get(name);
+      if (objIdByName != null) {
+         if (objIdByName.size() == 1) {
+            //logger.info("ok by all name: {}; {}", property.propName, withSpaces);   
+            return objIdByName.iterator().next();
+         } else if (objIdByName.size() > 1) {
+            //objIdByName.stream().filter().
+
+            Optional<Long> sbjObjByName = sbjObjIds.stream().parallel()
+               .filter(objId -> objIdByName.contains(objId)).findAny();
+            
+            if (sbjObjByName.isPresent()) {
+               sbjObjIds.remove(sbjObjByName.get());
+               //logger.info("ok by name: {}; withSpaces", property.propName, withSpaces);
+               return sbjObjByName.get();
+            }
+            logger.warn("multiple by name: {}", property.propName);
+         }
+      }
+      return -1L;
+   }
+
+   private Map<String, Set<Long>> getAllObj(boolean withSpaces) {
       if (allObj == null) {
          logger.info("Чтение описаний всех объектов. Начало");
          allObj = new HashMap<>();
+         allObjNoSpace = new HashMap<>();
+
          Iterable<I3Object> it = objRepo.findAll();
          logger.info("Чтение описаний всех объектов. Окончание");
          for (I3Object o: it) {
@@ -305,11 +368,14 @@ public class ImportService {
             if (descr != null) {
                allObj.computeIfAbsent(descr.toLowerCase().trim(), f -> new HashSet<>())
                   .add(o.getId());
+                  
+               allObjNoSpace.computeIfAbsent(descr.toLowerCase().replaceAll("\\s", ""), f -> new HashSet<>())
+                  .add(o.getId());
             }
          }
       }
 
-      return allObj;
+      return withSpaces ? allObj : allObjNoSpace;
    }
 
    private List<Object[]> getAllCost() {
