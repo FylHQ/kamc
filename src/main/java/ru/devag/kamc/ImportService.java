@@ -19,7 +19,6 @@ import ru.devag.kamc.repo.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -310,7 +309,7 @@ public class ImportService {
          if (property.propType == PropType.APRM || property.propType != PropType.NETW) {
             Stack<Long> aprms = aprmAddrObjIds.get(property.propAddress.toLowerCase());
             if (aprms != null && !aprms.empty()) {
-               //logger.info("ok aprm addr: {} [{}]", property.propName, property.propAddress);
+               logger.info("ok aprm addr: {} [{}]", property.propName, property.propAddress);
                return aprms.pop();
             }
          } 
@@ -318,7 +317,7 @@ public class ImportService {
          if (property.propType == PropType.NETW || property.propType != PropType.APRM) {
             Stack<Long> netws = netwAddrObjIds.get(property.propAddress.toLowerCase());
             if (netws != null && !netws.empty()) {
-               //logger.info("ok netw addr: {} [{}]", property.propName, property.propAddress);
+               logger.info("ok netw addr: {} [{}]", property.propName, property.propAddress);
                return netws.pop();
             }
          }
