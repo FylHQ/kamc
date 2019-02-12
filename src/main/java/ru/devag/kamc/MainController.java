@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -168,7 +169,8 @@ public class MainController {
         /*if (impResult != null && !impResult.isDone()) {
             return "Предыдущий импорт еще не завершен";
         }*/
-        
+        importSvc.initConstants();
+
         List<String> ignored = new ArrayList<>();
         List<SheetInfo> sheets = new ArrayList<>();
         for (SheetInfo sheet: bookInfo.sheets) {
@@ -183,7 +185,7 @@ public class MainController {
                             ignored);
                         logger.info("Импорт [{}]: OK", sheet.cntrNum);
                      } catch (Exception e) {
-                        logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e.getLocalizedMessage());
+                        logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e);
                      }
                 }
                 
@@ -217,20 +219,15 @@ public class MainController {
         //List<I3Object> obj = commonRepo.find1(30645764L);
 
         logger.info("Start last cost");
-        List<Object[]> objs = objRepo.getAllLastCost();
+        List<Tuple> objs = objRepo.getAllLastCost();
         logger.info("End last cost");
 
-        List<Object[]> newObj = objs
-        .stream()
-        .parallel()
-        .filter(item -> item[1] != null && ((BigDecimal)item[1]).doubleValue() == 2280551.57)
-        .collect(Collectors.toList());
-        logger.info("Found last cost: {}", newObj.size());
+        
         
 
 
 
-        return newObj.size();
+        return 1;
     }
 
     @GetMapping("/test2")

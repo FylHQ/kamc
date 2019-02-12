@@ -42,7 +42,7 @@
           </v-flex>
         </v-layout>
         <v-layout row wrap>
-          <v-flex xs6>
+          <v-flex xs5>
             <v-data-table
               v-model="selected"
               :headers="headers"
@@ -89,7 +89,7 @@
               </template>
             </v-data-table>
           </v-flex>
-          <v-flex xs6>
+          <v-flex xs7>
            <div class="headline">Журнал</div>
            <div ref="log" style="max-height: 300px; overflow-y: auto">
             <div :class="'log-' + item.level" v-for="(item, index) in logitems" :key="index">
@@ -257,6 +257,9 @@ export default {
   ;
 }
 
+.log-INFO {
+  font-size: 10px;
+}
 .log-ERROR {
   color: red;
 }
@@ -271,6 +274,6 @@ export default {
 }
 
 .v-input--checkbox .v-label {
-  font-size: 8px;
+  font-size: 10px;
 }
 </style>

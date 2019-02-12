@@ -83,7 +83,10 @@ public class BookInfo {
           if (propertyInfo.propNum != null && !propertyInfo.propNum.equals("")) {
               if (!StringUtils.isEmpty(propertyInfo.propArea)) {
                 propertyInfo.propType = PropType.APRM;
-              } else if (!StringUtils.isEmpty(propertyInfo.propLength)) {
+              } else if (!StringUtils.isEmpty(propertyInfo.propLength) ||
+                  propertyInfo.propName.indexOf(" сете") != -1 || 
+                  propertyInfo.propName.indexOf(" сеть") != -1 ||
+                  propertyInfo.propName.indexOf(" сети") != -1) {
                 propertyInfo.propType = PropType.NETW;
               } else if (!StringUtils.isEmpty(propertyInfo.propYear)) {
                 propertyInfo.propType = PropType.TRAN;

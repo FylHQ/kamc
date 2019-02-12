@@ -3,6 +3,8 @@ package ru.devag.kamc.repo;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.Tuple;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -26,6 +28,6 @@ public interface I3ObjectRepository extends CrudRepository<I3Object, Long> {
    List<Long> getIdByLastCost(Double lastCost);
 
    @Query(nativeQuery = true, value = "select obj_id, balance_cost, obj_cat from i3_v_obj_last_cost join i3_v_all_object_status_light using(obj_id)")
-   List<Object[]> getAllLastCost();
+   List<Tuple> getAllLastCost();
 
 }
