@@ -2,7 +2,8 @@ package ru.devag.kamc.model;
 
 import javax.persistence.*;
 
-@Entity(name="i3_kfxa_component")
+@Entity
+@Table(name="i3_kfxa_component")
 public class I3KfxaComponent {
 
    @Column(name = "i3kfa_kfxa_component_id", nullable = false)
@@ -17,8 +18,9 @@ public class I3KfxaComponent {
    @Column(name = "i3kfa_invnumber")
    private String kfaInvnumber;
 
-   @Column(name = "i3obj_object_id", nullable = false)
-   private Long objObjectId;
+   @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3obj_object_id", nullable = false)
+   private I3Object object;
 
    @Column(name = "i3kfa_place")
    private String kfaPlace;
@@ -58,14 +60,6 @@ public class I3KfxaComponent {
 
    public void setKfaInvnumber(String kfaInvnumber) {
       this.kfaInvnumber = kfaInvnumber;
-   }
-
-   public Long getObjObjectId() {
-      return objObjectId;
-   }
-
-   public void setObjObjectId(Long objObjectId) {
-      this.objObjectId = objObjectId;
    }
 
    public String getKfaPlace() {
@@ -108,4 +102,11 @@ public class I3KfxaComponent {
       this.kfaDescription = kfaDescription;
    }
 
+   public I3Object getObject() {
+      return object;
+   }
+
+   public void setObject(I3Object object) {
+      this.object = object;
+   }
 }

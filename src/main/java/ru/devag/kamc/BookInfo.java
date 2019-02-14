@@ -80,10 +80,10 @@ public class BookInfo {
               Cell cell = cellIterator.next();
               propertyInfo.set(cell, indexes);
           }
-          if (propertyInfo.propNum != null && !propertyInfo.propNum.equals("")) {
-              if (!StringUtils.isEmpty(propertyInfo.propArea)) {
+          if (propertyInfo.propNum != null) {
+              if (propertyInfo.propArea != null) {
                 propertyInfo.propType = PropType.APRM;
-              } else if (!StringUtils.isEmpty(propertyInfo.propLength) ||
+              } else if (propertyInfo.propLength != null ||
                   propertyInfo.propName.indexOf(" сете") != -1 || 
                   propertyInfo.propName.indexOf(" сеть") != -1 ||
                   propertyInfo.propName.indexOf(" сети") != -1) {

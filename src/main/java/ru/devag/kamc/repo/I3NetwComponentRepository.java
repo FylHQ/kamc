@@ -14,7 +14,12 @@ public interface I3NetwComponentRepository extends CrudRepository<I3NetwComponen
    //List<I3NetwComponent> findByNetCadastralInfo(String netCadastralInfo);
    Optional<I3NetwComponent> findByLandObjectObjNumber(String val);
 
-   List<I3NetwComponent> findByNetCadastralCostNotNull();
+   @Query(nativeQuery = true, value = 
+   "select land.i3obj_object_id, netw.i3net_length" +
+   " from i3_netw_component netw" +
+   " join i3_land_component land on netw.i3lnd_land_component_id = land.i3lnd_land_component_id" +
+   " where i3net_length is not null")
+   List<Tuple> findAllLength();
 
    @Query("select netw, obj from I3NetwComponent netw" + 
       " join I3LandComponent land on netw.land = land.id" + 

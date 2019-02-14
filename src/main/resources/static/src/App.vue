@@ -23,20 +23,31 @@
           </v-flex>
           <v-flex xs12 sm6>
             <v-layout row wrap>
-              <v-flex sm12 md6>
+              <v-flex sm12 md4>
                 <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
               </v-flex>
-              <v-flex sm6 md3>
+              <!--<v-flex sm4 md4>
                 <v-checkbox caption
                   v-model="importSettings.ignoreCheap"
-                  label="Игнорир. < 50000"
+                  label="Игнор. < 50000"
                 ></v-checkbox>
-              </v-flex>
-              <v-flex sm6 md3>
+              </v-flex>-->
+              <v-flex sm4 md3>
                 <v-checkbox
                   v-model="importSettings.ignoreAll"
-                  label="Игнорир. любые"
+                  label="Игнор. любые"
                 ></v-checkbox>
+              </v-flex>
+              <v-flex sm4 md4>
+                <v-checkbox caption
+                  v-model="importSettings.createNew"
+                  label="Создавать новые"
+                ></v-checkbox>
+              </v-flex>
+              <v-flex sm4 md1>
+                <v-text-field
+                  v-model="importSettings.threshFull"
+                ></v-text-field>
               </v-flex>
             </v-layout>
           </v-flex>
@@ -147,7 +158,9 @@ export default {
       isActive: false,
       importSettings: {
         ignoreCheap: false,
-        ignoreAll: false
+        ignoreAll: false,
+        threshFull: 5,
+        createNew: false
       }
     }
   },
@@ -198,6 +211,7 @@ export default {
       let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
       self.isImportEnabled = false
       self.isActive = true
+      self.importSettings.threshFull *= 1
       axios.post('/import', {sheetCodes: codes, settings: self.importSettings})
       .then(result => {
         self.logitems.push({message: "Результат: " + result.data})
@@ -265,9 +279,11 @@ export default {
 }
 .log-WARN {
   color: blue;
+  font-size: 10px;
 }
 .log-DEBUG {
   color: gray;
+  font-size: 10px;
 }
 .cntr-true {
   color: lightgray;

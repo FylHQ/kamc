@@ -4,7 +4,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Tuple;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -169,7 +167,7 @@ public class MainController {
         /*if (impResult != null && !impResult.isDone()) {
             return "Предыдущий импорт еще не завершен";
         }*/
-        importSvc.initConstants();
+        importSvc.init(ir.settings);
 
         List<String> ignored = new ArrayList<>();
         List<SheetInfo> sheets = new ArrayList<>();
@@ -179,13 +177,14 @@ public class MainController {
                     logger.error("Не указан ИНН: {}", sheet.subject);
                 } else {
                     try {
-                        importSvc.importSheet(sheet, 
-                            ir.settings.getOrDefault("ignoreCheap", false),
-                            ir.settings.getOrDefault("ignoreAll", false),
-                            ignored);
+                        List<String> created = new ArrayList<>();
+                        importSvc.importSheet(sheet, ignored, created);
                         logger.info("Импорт [{}]: OK", sheet.cntrNum);
+                        if (created.size() > 0) {
+                            logger.warn("Создано новых [{}]: {}", sheet.cntrNum, created.size());
+                        }
                      } catch (Exception e) {
-                        logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e);
+                        logger.error("Ошибка импорта [{}]: {}", sheet.cntrNum, e.getMessage());
                      }
                 }
                 
@@ -202,7 +201,7 @@ public class MainController {
     }
 
     @GetMapping("/test1")
-    public int test1() {
+    public String test1() {
         /*Query q = em.createQuery("select obj from I3Object obj " +
             "join I3ObjRtn obr on obj.id = obr.objObjectId " + 
             "join I3SbjRtn sbr on obr.rtnRelationId = sbr.rtnRelationId " + 
@@ -218,16 +217,16 @@ public class MainController {
         //logger.info("{}", obj.get(0)[1]);
         //List<I3Object> obj = commonRepo.find1(30645764L);
 
-        logger.info("Start last cost");
-        List<Tuple> objs = objRepo.getAllLastCost();
-        logger.info("End last cost");
+        //logger.info("Start last cost");
+        //List<Tuple> objs = objRepo.getAllLastCost();
+        //logger.info("End last cost");
 
         
         
 
 
 
-        return 1;
+        return StringUtils.substring("asdf", 0, 10);
     }
 
     @GetMapping("/test2")
@@ -242,7 +241,7 @@ public class MainController {
         //List<Tuple> obj = netwRepo.findObjectsNetCadastralCostNotNull();
         //return obj.get(0).get(1, I3Object.class).getId();
 
-        importSvc.initConstants();
+        //importSvc.initConstants();
         
         //logger.info("{}", importSvc.netwCadObjIds.size());
         return 1L;

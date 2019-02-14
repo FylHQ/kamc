@@ -19,16 +19,17 @@ public class PropertyInfo {
       KFXA
    }
 
-   public String propNum;
+   public Integer propNum;
    public String propName = null;
    public String propAddress = null;
-   public String propArea = null;
-   public String propLength = null;
+   public Double propArea = null;
+   public Double propLength = null;
    public String propCadnum = null;
    public Double propCost = null;
    public String propMonthSum;
    public String propYearSum;
    public String propYear = null;
+   public Integer propCount = null;
    public boolean isPart = false;
 
    public PropType propType;
@@ -37,7 +38,8 @@ public class PropertyInfo {
       int index = cell.getColumnIndex();
       
       if (index == indexes.numIndex) {
-         propNum = cell.toString();
+         Double val = getNumeric(cell);
+         propNum = val == null ? null : val.intValue();
       } else if (index == indexes.nameIndex) {
          propName = cell.toString();
          String prefix = "часть крыши здания ";
@@ -72,38 +74,44 @@ public class PropertyInfo {
          }
 
       } else if (index == indexes.areaIndex) {
-         propArea = cell.toString();
+         propArea = getNumeric(cell);
       } else if (index == indexes.lengthIndex) {
-         propLength = cell.toString();
+         propLength = getNumeric(cell);
       } else if (index == indexes.cadnumIndex) {
          propCadnum = cell.toString();
       } else if (index == indexes.costIndex) {
-         if (cell.getCellType() == CellType.NUMERIC) {
-            propCost = cell.getNumericCellValue();
-         } else {
-            String strVal = cell.getStringCellValue().replace(',', '.').replaceAll("[^\\d.]", "");
-            if (StringUtils.countMatches(strVal, ".") == 2) {
-               logger.warn("Найдено два разделителя. Убираем первый: [{}]: {}", propName, strVal);
-               strVal = strVal.replaceFirst("\\.", "");
-            }
-            if (!strVal.equals("")) {
-               try {
-                  propCost = Double.parseDouble(strVal);
-               } catch (NumberFormatException e) {
-                  logger.error("Ошибка конвертации: {}", strVal);
-                  propCost = null;   
-               }
-            } else {
-               propCost = null;
-            }
-         }
+         propCost = getNumeric(cell);
       } else if (index == indexes.monthSumIndex) {
          propMonthSum = cell.toString();
       } else if (index == indexes.yearSumIndex) {
          propYearSum = cell.toString();
       } else if (index == indexes.yearIndex) {
          propYear = cell.toString();
+      } else if (index == indexes.countIndex) {
+         Double val = getNumeric(cell);
+         propCount = val == null ? null : val.intValue();
       }
+   }
+
+   private Double getNumeric(Cell cell) {
+      if (cell.getCellType() == CellType.NUMERIC) {
+         return cell.getNumericCellValue();
+      } else {
+         String strVal = cell.getStringCellValue().replace(',', '.').replaceAll("[^\\d.]", "");
+         if (StringUtils.countMatches(strVal, ".") == 2) {
+            logger.warn("Найдено два разделителя. Убираем первый: [{}]: {}", propName, strVal);
+            strVal = strVal.replaceFirst("\\.", "");
+         }
+         if (!strVal.equals("")) {
+            try {
+               return Double.parseDouble(strVal);
+            } catch (NumberFormatException e) {
+               logger.error("Ошибка конвертации: {}", strVal);
+               return null;   
+            }
+         }
+      }
+      return null;
    }
 
 }

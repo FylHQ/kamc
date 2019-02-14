@@ -3,7 +3,8 @@ package ru.devag.kamc.model;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name="i3_aprm_component")
+@Entity
+@Table(name="i3_aprm_component")
 public class I3AprmComponent {
 
    @Column(name = "i3apm_aprm_component_id", nullable = false)

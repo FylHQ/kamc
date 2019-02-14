@@ -4,5 +4,5 @@ import java.util.Map;
 
 public class ImportRequest {
    public Map<String, Integer> sheetCodes;
-   public Map<String, Boolean> settings;
+   public Map<String, Object> settings;
 }
