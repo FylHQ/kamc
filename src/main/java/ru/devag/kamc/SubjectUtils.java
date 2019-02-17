@@ -12,7 +12,7 @@ import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
 @Service
-public class SubjectSearch {
+public class SubjectUtils {
    private static Logger logger = LoggerFactory.getLogger(ObjectSearch.class);
 
    @Autowired
@@ -33,13 +33,23 @@ public class SubjectSearch {
       subjectsObjId = new HashMap<>();
    }
    
-   public Long getLandlordId() {
-      List<I3Subject> landlordList = sbjRepo.findBySbjDescriptionIgnoreCaseContaining("Управление экономического развития");
-      if (landlordList.size() != 1) {
-         logger.error("Не найден арендодатель");
+   public Long getDepSbjId() {
+      List<I3Subject> sbjList = sbjRepo.findBySbjDescriptionIgnoreCaseContaining("Управление экономического развития");
+      if (sbjList.size() != 1) {
+         logger.error("Не найдено УЭР");
          return -1L;
       }
-      return landlordList.get(0).getId();
+      return sbjList.get(0).getId();
+   }
+
+   public Long getPKGOSbjId() {
+      Optional<I3Subject> sbj = sbjRepo.findBySbjNumber("LOTUS_647CC78822808A1B4C256A0500765C7B");
+      if (!sbj.isPresent()) {
+         logger.error("Не удалось найти ПКГО по коду");
+         return -1L;
+      } else {
+         return sbj.get().getId();
+      }
    }
 
    public Set<Long> getSbjObjects(Long sbjId) {

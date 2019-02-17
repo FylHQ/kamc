@@ -83,8 +83,8 @@ class Generator:
 
 
 
-gen = Generator('i3/pandora@127.0.0.1/kamc')
-#gen = Generator('i3/pandora@ora11g/kamc')
+#gen = Generator('i3/pandora@127.0.0.1/kamc')
+gen = Generator('i3/pandora@ora11g/kamc')
 
 #tables = ['I3_OBJECT', 'I3_CATEGORY', 'I3_RELATION', 'I3_BASEMENT']
 #tables = ['I3_CNTR_COMPONENT', 'I3_SUBJECT', 'I3_PERS_COMPONENT', 'I3_CMPY_COMPONENT']
@@ -95,9 +95,11 @@ gen = Generator('i3/pandora@127.0.0.1/kamc')
 #tables = ['I3_OBJ_BST']
 #tables = ['I3_NETW_COMPONENT', 'I3_APRM_COMPONENT', 'I3_KFXA_COMPONENT', 'I3_TRAN_COMPONENT', 'I3_BLDN_COMPONENT']
 #tables = ['I3_OBJ_RTN', 'I3_SBJ_RTN']
-tables = ['I3_LAND_COMPONENT']
-javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
-#javaSrc = 'C:/prj/KAMC/web/src/main/java'
+#tables = ['I3_LAND_COMPONENT']
+#tables = ['I3_TITL_COMPONENT', 'I3_TRAT_PROPERTY', 'I3_TRAT_COMPONENT']
+tables = ['I3_RTN_BST']
+#javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
+javaSrc = 'C:/prj/KAMC/web/src/main/java'
 gen.store(tables, javaSrc)
 
 #parser = argparse.ArgumentParser("")

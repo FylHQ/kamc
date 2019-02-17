@@ -31,14 +31,14 @@ public class ObjectCreate {
          sb.append(" ").append(property.propCount).append(" шт.");
       }
 
-      if (property.propAddress != null) {
-         sb.append(" (").append(property.propAddress).append(")");
+      if (property.propPlacement != null) {
+         sb.append(" (").append(property.propPlacement).append(")");
       }
 
       obj.setObjDescription(sb.toString());
       obj.setCatCategoryId(catRepo.findByCatCode("KFXA").getId());
 
-      obj.setStsStatusId(1L);
+      obj.setStsStatusId(2L);
       obj.setObjNumber("XLSX_2019_" + sheet.cntrNum + "_" + property.propNum);
 
       objRepo.save(obj);

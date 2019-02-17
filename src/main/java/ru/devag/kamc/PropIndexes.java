@@ -6,7 +6,7 @@ public class PropIndexes {
    
    public static final String PROP_NUM = "№ п/п";
    public static final String PROP_NAME = "наименование";
-   public static final String PROP_ADDRESS = "адрес";
+   public static final String PROP_PLACEMENT = "адрес";
    public static final String PROP_AREA = "площадь";
    public static final String PROP_LENGTH = "протяженность";
    public static final String PROP_CADNUM = "кадастровый номер";
@@ -18,7 +18,7 @@ public class PropIndexes {
 
    int numIndex = -1;
    int nameIndex = -1;
-   int addressIndex = -1;
+   int placementIndex = -1;
    int areaIndex = -1;
    int lengthIndex = -1;
    int cadnumIndex = -1;
@@ -36,8 +36,8 @@ public class PropIndexes {
          numIndex = index;
       } else if (cellText.startsWith(PROP_NAME)) {
          nameIndex = index;
-      } else if (cellText.startsWith(PROP_ADDRESS)) {
-         addressIndex = index;
+      } else if (cellText.startsWith(PROP_PLACEMENT)) {
+         placementIndex = index;
       } else if (cellText.startsWith(PROP_AREA)) {
          areaIndex = index;
       } else if (cellText.startsWith(PROP_LENGTH)) {

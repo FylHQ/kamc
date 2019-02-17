@@ -4,14 +4,15 @@ import java.util.Date;
 import javax.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Entity(name="i3_relation")
+@Entity
+@Table(name="i3_relation")
 public class I3Relation {
 
    @Column(name = "i3rtn_relation_id", nullable = false)
    @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "I3_SEQ")
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
-   private Long rtnRelationId;
+   private Long id;
 
    @Column(name = "i3cat_category_id", nullable = false)
    private Long catCategoryId;
@@ -35,12 +36,12 @@ public class I3Relation {
    private String rtnUser;
 
 
-   public Long getRtnRelationId() {
-      return rtnRelationId;
+   public Long getId() {
+      return id;
    }
 
-   public void setRtnRelationId(Long rtnRelationId) {
-      this.rtnRelationId = rtnRelationId;
+   public void setId(Long id) {
+      this.id = id;
    }
 
    public Long getCatCategoryId() {

@@ -29,13 +29,16 @@ public class ImportService {
    private EntityManager entityManager;
 
    @Autowired
-   SubjectSearch sbjSearch;
+   SubjectUtils sbjSearch;
    
    @Autowired
    ObjectSearch objSearch;
 
    @Autowired
    ObjectCreate objCreate;
+
+   @Autowired
+   RelationUtils rtnUtils;
 
    @Autowired
    I3SubjectRepository sbjRepo;
@@ -69,7 +72,8 @@ public class ImportService {
 
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
-   private Long landlordId = -1L;
+   private Long depSbjId = -1L;
+   private Long pkgoSbjId = -1L;
    private Long lptyCatId = -1L;
    private Long lptyClfId = -1L;
 
@@ -88,7 +92,8 @@ public class ImportService {
       lptyCatId = catRepo.findByCatCode("LPTY").getId();
       lptyClfId = clfRepo.findByCfvCode("CLF_CNTRTYPE_LEA_NF").getId();
 
-      landlordId = sbjSearch.getLandlordId();
+      depSbjId = sbjSearch.getDepSbjId();
+      pkgoSbjId = sbjSearch.getPKGOSbjId();
    }
 
    public void put(String code, BookInfo bookInfo) {
@@ -107,8 +112,6 @@ public class ImportService {
 
       //logger.info("Импорт [{}]", sheet.cntrNum);
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-
       I3Basement bst = new I3Basement();
       I3LptyComponent lpty = new I3LptyComponent();
 
@@ -119,27 +122,15 @@ public class ImportService {
       lpty.setLpyIsOtherRate("F");
       lpty.setCfvClassifierValueId(lptyClfId);
 
-      try {
-         lpty.setLpyConfirmDate(dateFormat.parse(sheet.cntrStartDate));
-      } catch (ParseException e) {
-         logger.error("Wrong date: {}", sheet.cntrStartDate);
-         lpty.setLpyConfirmDate(new Date());
-      }
-
-      if (!StringUtils.isEmpty(sheet.cntrEndDate) && !sheet.cntrEndDate.equals("неопределенный срок")) {
-         try {
-            lpty.setLpyEndDate(dateFormat.parse(sheet.cntrEndDate));
-         } catch (ParseException e) {
-            logger.error("Wrong date: {}", sheet.cntrEndDate);
-         }
-      }
+      lpty.setLpyConfirmDate(sheet.cntrStartDate);
+      lpty.setLpyEndDate(sheet.cntrEndDate);
 
       bstRepo.save(bst);
       lpty.setBstBasementId(bst.getId());
       lptyRepo.save(lpty);
 
       I3SbjBst sbjBst = new I3SbjBst();
-      sbjBst.setSbjSubjectId(landlordId);
+      sbjBst.setSbjSubjectId(depSbjId);
       sbjBst.setBstBasementId(bst.getId());
       sbjBst.setSbbType(4110L);
       sbjBstRepo.save(sbjBst);
@@ -165,6 +156,8 @@ public class ImportService {
             objBst.setObjObjectId(objId);
             objBst.setBstBasementId(bst.getId());
             objBstRepo.save(objBst);
+
+            rtnUtils.createRent(true, sheet, property, objId, sbjId, bst.getId());
          } else {
             if (!createNew && !ignoreAll) {
                logger.error("not found: {}", property.propName);
@@ -176,6 +169,11 @@ public class ImportService {
                      created.add("[" + sheet.cntrNum + "] " + property.propNum + " " + property.propName);
                      logger.warn("create [{}] {}", property.propNum, obj.getObjDescription());
                      objId = obj.getId();
+
+                     rtnUtils.createRent(false, sheet, property, obj.getId(), sbjId, bst.getId());
+                     rtnUtils.createMS(sheet, property, obj.getId(), pkgoSbjId);
+                     rtnUtils.createMK(sheet, property, obj.getId(), depSbjId);
+
                   } else {
                      if (ignoreAll) {
                         objId = 5L;

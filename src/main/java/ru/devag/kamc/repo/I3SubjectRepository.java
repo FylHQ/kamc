@@ -1,6 +1,7 @@
 package ru.devag.kamc.repo;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -10,4 +11,5 @@ public interface I3SubjectRepository extends CrudRepository<I3Subject, Long> {
    List<I3Subject> findBySbjDescription(String sbjDescription);
 
    List<I3Subject> findBySbjDescriptionIgnoreCaseContaining(String descr);
+   Optional<I3Subject> findBySbjNumber(String sbjNumber);
 }
