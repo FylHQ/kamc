@@ -15,8 +15,9 @@ public class I3CmpyComponent {
    @Column(name = "i3cfv_classifier_value_id")
    private Long cfvClassifierValueId;
 
-   @Column(name = "i3sbj_subject_id", nullable = false)
-   private Long sbjSubjectId;
+   @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3sbj_subject_id", nullable = false)
+   private I3Subject sbj;
 
    @Column(name = "i3cmp_okpo")
    private String cmpOkpo;
@@ -166,12 +167,12 @@ public class I3CmpyComponent {
       this.cfvClassifierValueId = cfvClassifierValueId;
    }
 
-   public Long getSbjSubjectId() {
-      return sbjSubjectId;
+   public I3Subject getSbj() {
+      return sbj;
    }
 
-   public void setSbjSubjectId(Long sbjSubjectId) {
-      this.sbjSubjectId = sbjSubjectId;
+   public void setSbj(I3Subject sbj) {
+      this.sbj = sbj;
    }
 
    public String getCmpOkpo() {

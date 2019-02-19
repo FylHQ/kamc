@@ -30,7 +30,7 @@ class Generator:
       elif dbType == 'DATE':
          return 'Date'
       elif dbType == 'NUMBER':
-         if dbPrecision:
+         if dbPrecision and dbPrecision != 38:
             return 'Double'
          else:
             return 'Long'
@@ -97,7 +97,9 @@ gen = Generator('i3/pandora@ora11g/kamc')
 #tables = ['I3_OBJ_RTN', 'I3_SBJ_RTN']
 #tables = ['I3_LAND_COMPONENT']
 #tables = ['I3_TITL_COMPONENT', 'I3_TRAT_PROPERTY', 'I3_TRAT_COMPONENT']
-tables = ['I3_RTN_BST']
+#tables = ['I3_RTN_BST']
+#tables = ['I3_LPTY_PROTOCOL', 'I3_LPTY_PAYMENT', 'I3_LPTY_PTL_OBJ']
+tables = ['I3_LPTY_PTL_OBJ']
 #javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
 javaSrc = 'C:/prj/KAMC/web/src/main/java'
 gen.store(tables, javaSrc)

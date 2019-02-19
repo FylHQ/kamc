@@ -12,9 +12,12 @@ public interface I3ObjRtnRepository extends CrudRepository<I3ObjRtn, Long> {
    @Query(nativeQuery = true, 
       value = "select obr.*" + 
       " from i3_obj_rtn obr," +
+      "   i3_object obj," +
       "   i3_relation rtn," +
       "   i3_titl_component titl" +
       " where obr.i3obj_object_id = ?1 and" +
+      "   obr.i3obj_object_id = obj.i3obj_object_id and" +
+      "   obj.i3sts_status_id = 2 and" +
       "   obr.i3rtn_relation_id = rtn.i3rtn_relation_id and" +
       "   rtn.i3sts_status_id = 2 and" +
       "   rtn.i3rtn_relation_id = titl.i3rtn_relation_id and" +

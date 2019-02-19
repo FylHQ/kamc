@@ -27,14 +27,12 @@ public class I3Relation {
    private Long stsStatusId;
 
    @Column(name = "i3rtn_date")
-   @CreationTimestamp
    @Temporal(TemporalType.TIMESTAMP)
    private Date rtnDate;
 
    @Column(name = "i3rtn_user")
    @Transient
    private String rtnUser;
-
 
    public Long getId() {
       return id;

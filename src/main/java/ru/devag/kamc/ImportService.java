@@ -53,6 +53,15 @@ public class ImportService {
    I3LptyComponentRepository lptyRepo;
 
    @Autowired
+   I3LptyProtocolRepository lptyProtoRepo;
+
+   @Autowired
+   I3LptyPtlObjRepository lptyProtoObjRepo;
+
+   @Autowired
+   I3LptyPaymentRepository lptyPaymRepo;
+
+   @Autowired
    I3CategoryRepository catRepo;
 
    @Autowired
@@ -106,8 +115,8 @@ public class ImportService {
 
    @Transactional
    public void importSheet(SheetInfo sheet, List<String> ignored, List<String> created) {
-      Long sbjId = sbjSearch.getSbjId(sheet);
-      if (sbjId < 0)
+      I3Subject sbj = sbjSearch.getSbj(sheet);
+      if (sbj == null)
          return;
 
       //logger.info("Импорт [{}]", sheet.cntrNum);
@@ -136,7 +145,7 @@ public class ImportService {
       sbjBstRepo.save(sbjBst);
 
       sbjBst = new I3SbjBst();
-      sbjBst.setSbjSubjectId(sbjId);
+      sbjBst.setSbjSubjectId(sbj.getId());
       sbjBst.setBstBasementId(bst.getId());
       sbjBst.setSbbType(4109L);
       sbjBstRepo.save(sbjBst);
@@ -147,8 +156,11 @@ public class ImportService {
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
 
+      I3LptyProtocol proto = createProtocol(sheet, lpty, sbjBst.getId(), sbj);
+      createPayments(proto, sheet);
+
       for (PropertyInfo property: sheet.property) {
-         Long objId = getObjId(property, sbjId);
+         Long objId = getObjId(property, sbj.getId());
 
          if (objId != null && objId > 0) {
             I3ObjBst objBst = new I3ObjBst();
@@ -157,7 +169,8 @@ public class ImportService {
             objBst.setBstBasementId(bst.getId());
             objBstRepo.save(objBst);
 
-            rtnUtils.createRent(true, sheet, property, objId, sbjId, bst.getId());
+            rtnUtils.createRent(true, sheet, property, objId, sbj.getId(), bst.getId());
+            addProtoObject(proto, objId, property);
          } else {
             if (!createNew && !ignoreAll) {
                logger.error("not found: {}", property.propName);
@@ -170,10 +183,12 @@ public class ImportService {
                      logger.warn("create [{}] {}", property.propNum, obj.getObjDescription());
                      objId = obj.getId();
 
-                     rtnUtils.createRent(false, sheet, property, obj.getId(), sbjId, bst.getId());
+                     rtnUtils.createRent(false, sheet, property, obj.getId(), sbj.getId(), bst.getId());
                      rtnUtils.createMS(sheet, property, obj.getId(), pkgoSbjId);
                      rtnUtils.createMK(sheet, property, obj.getId(), depSbjId);
 
+                     rtnUtils.createTrat(sheet, property, objId);
+                     addProtoObject(proto, objId, property);
                   } else {
                      if (ignoreAll) {
                         objId = 5L;
@@ -230,6 +245,59 @@ public class ImportService {
       }
 
       return -1L;
+   }
+
+   private I3LptyProtocol createProtocol(SheetInfo sheet, I3LptyComponent lpty, Long sbbId, I3Subject sbj) {
+      SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+      I3LptyProtocol proto = new I3LptyProtocol();
+      proto.setLpty(lpty);
+
+      try {
+         proto.setPtlStartDate(sdf.parse("01.01.2019"));
+         proto.setPtlEndDate(sdf.parse("31.12.2019"));
+      } catch (ParseException ignored) {}
+
+      proto.setSbbSbjBstId(sbbId);
+      proto.setSbj(sbj);
+      proto.setPtlPeriodRate(sheet.cntrMonthSum);
+      proto.setPtlYearRate(sheet.cntrYearSum);
+      proto.setPtlVat(20d);
+
+      lptyProtoRepo.save(proto);
+
+      return proto;
+   }
+
+   private void addProtoObject(I3LptyProtocol proto, Long objId, PropertyInfo property) {
+      I3LptyPtlObj ptlObj = new I3LptyPtlObj();
+      ptlObj.setProto(proto);
+      ptlObj.setObjObjectId(objId);
+
+      if (property.propMonthSum != null && property.propMonthSum > 0) {
+         ptlObj.setPtoPeriodRate(property.propMonthSum);
+      }
+
+      if (property.propYearSum != null && property.propYearSum > 0) {
+         ptlObj.setPtoYearRate(property.propYearSum);
+      }
+      lptyProtoObjRepo.save(ptlObj);
+   }
+
+   private void createPayments(I3LptyProtocol proto, SheetInfo sheet) {
+      SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+
+      for (int month = 0; month < 12; month++) {
+         I3LptyPayment paym = new I3LptyPayment();
+         paym.setProto(proto);
+         paym.setPmtNumber("01/" + String.format("%02d", month + 1));
+         try {
+            paym.setPmtPaymentStart(sdf.parse("01." + String.valueOf(month + 1) + ".2019"));
+            paym.setPmtPaymentEnd(sdf.parse("15." + String.valueOf(month + 1) + ".2019"));
+         } catch (ParseException ignored) {}
+
+         paym.setPmtExpectedVal(sheet.cntrMonthSum);
+         lptyPaymRepo.save(paym);
+      }
    }
 
    public static String getCadnum(String val) {

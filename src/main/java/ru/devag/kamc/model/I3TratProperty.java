@@ -14,8 +14,9 @@ public class I3TratProperty {
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
    private Long id;
 
-   @Column(name = "i3trt_trat_component_id", nullable = false)
-   private Long trtTratComponentId;
+   @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3trt_trat_component_id", nullable = false)
+   private I3TratComponent trat;
 
    @Column(name = "i3trp_balance_cost")
    private Double trpBalanceCost;
@@ -29,7 +30,6 @@ public class I3TratProperty {
    @Column(name = "i3trp_leasing_rate")
    private Double trpLeasingRate;
 
-
    public Long getId() {
       return id;
    }
@@ -38,12 +38,12 @@ public class I3TratProperty {
       this.id = id;
    }
 
-   public Long getTrtTratComponentId() {
-      return trtTratComponentId;
+   public I3TratComponent getTrat() {
+      return trat;
    }
 
-   public void setTrtTratComponentId(Long trtTratComponentId) {
-      this.trtTratComponentId = trtTratComponentId;
+   public void setTrat(I3TratComponent trat) {
+      this.trat = trat;
    }
 
    public Double getTrpBalanceCost() {

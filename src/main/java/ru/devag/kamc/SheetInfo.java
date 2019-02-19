@@ -1,5 +1,7 @@
 package ru.devag.kamc;
 
+import static ru.devag.kamc.ImportUtils.*;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,8 +30,8 @@ public class SheetInfo {
     public String cntrNum;
     public Date cntrStartDate;
     public Date cntrEndDate;
-    public String cntrMonthSum;
-    public String cntrYearSum;
+    public Double cntrMonthSum;
+    public Double cntrYearSum;
     public boolean isExists;
 
     public List<PropertyInfo> property = new ArrayList<>();
@@ -66,9 +68,9 @@ public class SheetInfo {
                 }
             }
         } else if (cellText.startsWith("Размер ежемесячной арендной платы по договору:")) {
-            cntrMonthSum = cellText.substring(CNTR_MONTH_SUM.length()).trim();
+            cntrMonthSum = getNumeric(cellText.substring(CNTR_MONTH_SUM.length()).replace("руб.", "").replace("руб", "").trim());
         } else if (cellText.startsWith("Размер годовой арендной платы по договору:")) {
-            cntrYearSum = cellText.substring(CNTR_YEAR_SUM.length()).trim();
+            cntrYearSum = getNumeric(cellText.substring(CNTR_YEAR_SUM.length()).replace("руб.", "").replace("руб", "").trim());
         }
    }
 }

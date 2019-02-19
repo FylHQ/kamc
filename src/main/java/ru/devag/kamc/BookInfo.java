@@ -9,10 +9,14 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.devag.kamc.PropertyInfo.PropType;
 
 public class BookInfo {
+  private static Logger logger = LoggerFactory.getLogger(BookInfo.class);
+
    public List<SheetInfo> sheets = new ArrayList<>();
 
    public BookInfo(XSSFWorkbook workbook) {
@@ -84,9 +88,14 @@ public class BookInfo {
               if (propertyInfo.propArea != null) {
                 propertyInfo.propType = PropType.APRM;
               } else if (propertyInfo.propLength != null ||
-                  propertyInfo.propName.indexOf(" сете") != -1 || 
-                  propertyInfo.propName.indexOf(" сеть") != -1 ||
-                  propertyInfo.propName.indexOf(" сети") != -1) {
+                    ((propertyInfo.propName.indexOf(" сете") != -1 || 
+                        propertyInfo.propName.indexOf(" сеть") != -1 ||
+                        propertyInfo.propName.indexOf(" сети") != -1
+                    ) && 
+                    !propertyInfo.propName.contains("Адаптер сети") &&
+                    !propertyInfo.propName.contains("Насос сетевой") &&
+                    !propertyInfo.propName.contains("Оборудование частотного регул") &&
+                    !propertyInfo.propName.contains("Пластинчатый теплоообменник"))) {
                 propertyInfo.propType = PropType.NETW;
               } else if (!StringUtils.isEmpty(propertyInfo.propYear)) {
                 propertyInfo.propType = PropType.TRAN;

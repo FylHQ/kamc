@@ -1,11 +1,12 @@
 package ru.devag.kamc;
 
+import static ru.devag.kamc.ImportUtils.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,8 @@ public class PropertyInfo {
    public Double propLength = null;
    public String propCadnum = null;
    public Double propCost = null;
-   public String propMonthSum;
-   public String propYearSum;
+   public Double propMonthSum = null;
+   public Double propYearSum = null;
    public String propYear = null;
    public Integer propCount = null;
    public boolean isPart = false;
@@ -87,9 +88,9 @@ public class PropertyInfo {
       } else if (index == indexes.costIndex) {
          propCost = getNumeric(cell);
       } else if (index == indexes.monthSumIndex) {
-         propMonthSum = cell.toString();
+         propMonthSum = getNumeric(cell);
       } else if (index == indexes.yearSumIndex) {
-         propYearSum = cell.toString();
+         propYearSum = getNumeric(cell);
       } else if (index == indexes.yearIndex) {
          propYear = cell.toString();
       } else if (index == indexes.countIndex) {
@@ -97,27 +98,4 @@ public class PropertyInfo {
          propCount = val == null ? null : val.intValue();
       }
    }
-
-   private Double getNumeric(Cell cell) {
-      if (cell.getCellType() == CellType.NUMERIC) {
-         return cell.getNumericCellValue();
-      } else {
-         String strVal = cell.getStringCellValue().replace(',', '.').replaceAll("[^\\d.]", "");
-         if (StringUtils.countMatches(strVal, ".") == 2) {
-            logger.warn("Найдено два разделителя. Убираем первый: [{}]: {}", propName, strVal);
-            strVal = strVal.replaceFirst("\\.", "");
-         }
-         if (!strVal.equals("")) {
-            try {
-               return Double.parseDouble(strVal);
-            } catch (NumberFormatException e) {
-               logger.error("Ошибка конвертации: {}", strVal);
-               return null;   
-            }
-         }
-      }
-      return null;
-   }
-
 }
-

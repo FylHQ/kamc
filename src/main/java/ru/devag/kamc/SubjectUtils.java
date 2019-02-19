@@ -59,24 +59,24 @@ public class SubjectUtils {
    }
 
 
-   public Long getSbjId(SheetInfo sheet) {
+   public I3Subject getSbj(SheetInfo sheet) {
       List<I3CmpyComponent> cmpy = cmpyRepo.findByCmpInn(sheet.inn);
       if (cmpy.size() > 0) {
-         return cmpy.get(0).getSbjSubjectId();
+         return cmpy.get(0).getSbj();
       }
 
       List<I3PersComponent> pers = persRepo.findByPrsItn(sheet.inn);
       if (pers.size() > 0) {
-         return pers.get(0).getSbjSubjectId();
+         return pers.get(0).getSbj();
       }
 
       List<I3Subject> sbj = sbjRepo.findBySbjDescription(sheet.subject);
       if (sbj.size() > 0) {
-         return sbj.get(0).getId();
+         return sbj.get(0);
       }
       logger.error("Не удалось найти субъекта: {}", sheet.subject);
       
-      return -1L;
+      return null;
    }
 
 }
