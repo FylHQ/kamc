@@ -2,7 +2,6 @@ package ru.devag.kamc.model;
 
 import java.util.Date;
 import javax.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name="i3_relation")

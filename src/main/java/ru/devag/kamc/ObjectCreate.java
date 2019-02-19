@@ -1,7 +1,5 @@
 package ru.devag.kamc;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +8,6 @@ import ru.devag.kamc.repo.*;
 
 @Service
 public class ObjectCreate {
-   private static Logger logger = LoggerFactory.getLogger(ObjectSearch.class);
-
    @Autowired
    I3ObjectRepository objRepo;
 
