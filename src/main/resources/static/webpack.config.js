@@ -5,11 +5,16 @@ module.exports = {
     mode: "development",
     /*mode: "production",*/
     entry: {
-        src: './src/index.js',
+        src: './index.js',
     },
     output: {
         path: __dirname + "/dist",
         filename: "bundle.js"
+    },
+    resolve: {
+        alias: {
+          'vue$': 'vue/dist/vue.esm.js'
+        }
     },
     stats: {
         colors: true
@@ -58,7 +63,13 @@ module.exports = {
                 use: [
                   'vue-style-loader',
                   'css-loader',
-                  'sass-loader'
+                  'resolve-url-loader',
+                  {
+                    loader: 'sass-loader',
+                    options: {
+                      data: '@import "./src/variables";'
+                    }
+                  }
                 ]
             },
             {

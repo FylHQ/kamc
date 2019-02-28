@@ -1,4 +1,4 @@
-package ru.devag.kamc;
+package ru.devag.kamc.rent;
 
 import static ru.devag.kamc.ImportUtils.*;
 

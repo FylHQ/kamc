@@ -33,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import ru.devag.kamc.log.*;
 import ru.devag.kamc.model.*;
+import ru.devag.kamc.rent.*;
+import ru.devag.kamc.nto.*;
 import ru.devag.kamc.repo.*;
 
 @RestController
@@ -126,26 +128,33 @@ public class MainController {
     }
 
     @PostMapping("/upload")
-    public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file) throws IOException {
+    public BookInfo<?> singleFileUpload(@RequestParam("xlsx") MultipartFile file, @RequestParam("sourceType") String sourceType) throws IOException {
         InputStream is = file.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(is);
 
-        BookInfo bookInfo = new BookInfo(workbook);
+        BookInfo<?> rentBook;
+        if (sourceType.equals("rent")) {
+            rentBook = new RentBook(workbook);
+
+            rentBook.sheets.forEach(sheet -> {
+                if (bstRepo.findByBstNumber(((RentSheet)sheet).cntrNum).isPresent()) {
+                    ((RentSheet)sheet).isExists = true;
+                }
+            });
+    
+            importSvc.put("rent", rentBook);
+        } else if (sourceType.equals("nto")) {
+            rentBook = new NtoBook(workbook); 
+        } else {
+            logger.error("Unsupported source type: {}", sourceType);
+            rentBook = null;
+        }
 
         workbook.close();
         is.close();
 
-        bookInfo.sheets.forEach(sheet -> {
-            if (bstRepo.findByBstNumber(sheet.cntrNum).isPresent()) {
-                sheet.isExists = true;
-            }
-        });
-
-        importSvc.put("1", bookInfo);
-
-
         /*AtomicInteger count = new AtomicInteger(0);
-        bookInfo.sheets.forEach(sheet -> {
+        rentBook.sheets.forEach(sheet -> {
             sheet.property.forEach(prop -> {
                 if (prop.propType == PropType.NETW)
                     count.incrementAndGet();
@@ -153,7 +162,7 @@ public class MainController {
         });
         logger.error("netw {}", count.get());*/
 
-        return bookInfo;
+        return rentBook;
     }
 
     /*
@@ -173,8 +182,8 @@ public class MainController {
 
     @PostMapping("/import")
     public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
-        BookInfo bookInfo = importSvc.get("1");
-        if (bookInfo == null) {
+        RentBook rentBook = (RentBook) importSvc.get("rent");
+        if (rentBook == null) {
             return "Книга не загружена";
         }
 
@@ -185,8 +194,8 @@ public class MainController {
         importSvc.init(ir.settings);
 
         List<String> ignored = new ArrayList<>();
-        List<SheetInfo> sheets = new ArrayList<>();
-        for (SheetInfo sheet : bookInfo.sheets) {
+        List<RentSheet> sheets = new ArrayList<>();
+        for (RentSheet sheet : rentBook.sheets) {
             if (ir.sheetCodes.containsKey(sheet.sheetName)) {
                 if (StringUtils.isEmpty(sheet.inn)) {
                     logger.error("Не указан ИНН: {}", sheet.subject);

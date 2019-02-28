@@ -1,4 +1,4 @@
-package ru.devag.kamc;
+package ru.devag.kamc.rent;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ public class ObjectCreate {
    @Autowired
    I3CategoryRepository catRepo;
 
-   public I3Object createKfxa(SheetInfo sheet, PropertyInfo property) {
+   public I3Object createKfxa(RentSheet sheet, PropertyInfo property) {
       I3Object obj = new I3Object();
 
       StringBuilder sb = new StringBuilder();

@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ru.devag.kamc.PropertyInfo.PropType;
+import ru.devag.kamc.rent.*;
+import ru.devag.kamc.rent.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 
@@ -79,7 +80,7 @@ public class ImportService {
    @Autowired
    I3LandComponentRepository landRepo;
 
-   private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, BookInfo<? extends SheetInfo>> cache = new ConcurrentHashMap<>();
 
    private Long depSbjId = -1L;
    private Long pkgoSbjId = -1L;
@@ -105,16 +106,16 @@ public class ImportService {
       pkgoSbjId = sbjSearch.getPKGOSbjId();
    }
 
-   public void put(String code, BookInfo bookInfo) {
+   public void put(String code, BookInfo<? extends SheetInfo> bookInfo) {
       cache.put(code, bookInfo);
    }
 
-   public BookInfo get(String code) {
+   public BookInfo<? extends SheetInfo> get(String code) {
       return cache.get(code);
    }
 
    @Transactional
-   public void importSheet(SheetInfo sheet, List<String> ignored, List<String> created) {
+   public void importSheet(RentSheet sheet, List<String> ignored, List<String> created) {
       I3Subject sbj = sbjSearch.getSbj(sheet);
       if (sbj == null)
          return;
@@ -247,7 +248,7 @@ public class ImportService {
       return -1L;
    }
 
-   private I3LptyProtocol createProtocol(SheetInfo sheet, I3LptyComponent lpty, Long sbbId, I3Subject sbj) {
+   private I3LptyProtocol createProtocol(RentSheet sheet, I3LptyComponent lpty, Long sbbId, I3Subject sbj) {
       SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
       I3LptyProtocol proto = new I3LptyProtocol();
       proto.setLpty(lpty);
@@ -283,7 +284,7 @@ public class ImportService {
       lptyProtoObjRepo.save(ptlObj);
    }
 
-   private void createPayments(I3LptyProtocol proto, SheetInfo sheet) {
+   private void createPayments(I3LptyProtocol proto, RentSheet sheet) {
       SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
       for (int month = 0; month < 12; month++) {

@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "type": "java",
             "name": "Debug (Attach)",
@@ -17,7 +18,7 @@
             "request": "launch",
             "encoding": "UTF-8",
             "mainClass": "ru.devag.kamc.KamcApplication",
-            "projectName": "web",
+            "projectName": "kamc-web",
             "args": "--server=ora11g --sid=kamc"
         },
         {

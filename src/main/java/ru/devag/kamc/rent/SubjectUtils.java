@@ -1,4 +1,4 @@
-package ru.devag.kamc;
+package ru.devag.kamc.rent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,7 +59,7 @@ public class SubjectUtils {
    }
 
 
-   public I3Subject getSbj(SheetInfo sheet) {
+   public I3Subject getSbj(RentSheet sheet) {
       List<I3CmpyComponent> cmpy = cmpyRepo.findByCmpInn(sheet.inn);
       if (cmpy.size() > 0) {
          return cmpy.get(0).getSbj();

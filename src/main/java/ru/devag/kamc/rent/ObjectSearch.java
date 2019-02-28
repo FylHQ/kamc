@@ -1,4 +1,4 @@
-package ru.devag.kamc;
+package ru.devag.kamc.rent;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 
-import ru.devag.kamc.PropertyInfo.PropType;
+import ru.devag.kamc.rent.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
 

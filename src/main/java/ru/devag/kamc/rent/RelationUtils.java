@@ -1,4 +1,4 @@
-package ru.devag.kamc;
+package ru.devag.kamc.rent;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -45,7 +45,7 @@ public class RelationUtils {
       this.tratCat = catRepo.findByCatCode("TRAT");
    }
 
-   public Long create(SheetInfo sheet, PropertyInfo property, String clfCode, String suffix, Long objId, Long sbjId,
+   public Long create(RentSheet sheet, PropertyInfo property, String clfCode, String suffix, Long objId, Long sbjId,
          Long sbrTypeId) {
       I3Relation rtn = new I3Relation();
       rtn.setCatCategoryId(titlCat.getId());
@@ -74,7 +74,7 @@ public class RelationUtils {
       return rtn.getId();
    }
 
-   public void createRent(boolean checkExists, SheetInfo sheet, PropertyInfo property, Long objId, Long sbjId,
+   public void createRent(boolean checkExists, RentSheet sheet, PropertyInfo property, Long objId, Long sbjId,
          Long bstId) {
       Long rtnId = -1L;
       if (checkExists) {
@@ -98,15 +98,15 @@ public class RelationUtils {
       rbsRepo.save(rbs);
    }
 
-   public void createMS(SheetInfo sheet, PropertyInfo property, Long objId, Long sbjId) {
+   public void createMS(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
       create(sheet, property, "TITYPE_TITLE_MUNIC", "MS", objId, sbjId, 4324L);
    }
 
-   public void createMK(SheetInfo sheet, PropertyInfo property, Long objId, Long sbjId) {
+   public void createMK(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
       create(sheet, property, "CLF_TITTYPE_MUNKAZ", "MK", objId, sbjId, 4303L);
    }
 
-   public void createTrat(SheetInfo sheet, PropertyInfo property, Long objId) {
+   public void createTrat(RentSheet sheet, PropertyInfo property, Long objId) {
       Date rtnDate;
       try {
          rtnDate = new SimpleDateFormat("dd.MM.yyyy").parse("01.01.2019");

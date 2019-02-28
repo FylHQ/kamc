@@ -10,6 +10,12 @@ import 'buefy/dist/buefy.css'*/
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
+import "ag-grid-community/dist/styles/ag-grid.css";
+import "../scss/index.scss";
+//ag-grid-community/dist/styles/ag-theme-material.css
+import "roboto-fontface/css/roboto/roboto-fontface.css"
+
+
 import Vuetify from 'vuetify'
 import ru from 'vuetify/es5/locale/ru'
 
