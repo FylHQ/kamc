@@ -52,7 +52,7 @@ export default {
     return {
       msg: 'АИС "Имущество',
       objCount: null,
-      activeTab: 1
+      activeTab: 0
     }
   },
   mounted: function() {

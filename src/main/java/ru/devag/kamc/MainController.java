@@ -195,7 +195,7 @@ public class MainController {
 
         List<String> ignored = new ArrayList<>();
         List<RentSheet> sheets = new ArrayList<>();
-        for (RentSheet sheet : rentBook.sheets) {
+        for (RentSheet sheet : rentBook.getSheets()) {
             if (ir.sheetCodes.containsKey(sheet.sheetName)) {
                 if (StringUtils.isEmpty(sheet.inn)) {
                     logger.error("Не указан ИНН: {}", sheet.subject);

@@ -11,16 +11,18 @@
             </v-flex>
          </v-layout>
          <v-layout row wrap>
-            <ag-grid-vue style="width: 100%; height: 400px;"
-                  :gridOptions="gridOptions"
-                  class="ag-theme-material"
-                  :columnDefs="columnDefs"
-                  :rowData="rowData"
-                  rowSelection="multiple"
-                  pagination=false
-                  paginationPageSize=50
-                  >
-            </ag-grid-vue>
+            <v-flex xs-12>
+               <ag-grid-vue style="width: 100%; height: 400px;"
+                     :gridOptions="gridOptions"
+                     class="ag-theme-material"
+                     :columnDefs="columnDefs"
+                     :rowData="rowData"
+                     rowSelection="multiple"
+                     pagination=false
+                     paginationPageSize=50
+                     >
+               </ag-grid-vue>
+            </v-flex>
          </v-layout>
       </v-flex>
    </v-layout>
@@ -54,10 +56,11 @@ export default {
    },
    data () {
       return {
+         gridOptions: null,
          gridApi: null,
          gridColumnApi: null,
          columnDefs: null,
-         rowData: null,
+         rowData: [],
          isImportEnabled: false
       }
    },
@@ -67,9 +70,8 @@ export default {
          //this.gridApi.sizeColumnsToFit(); 
          let self = this
          self.isImportEnabled = true
-         this.$nextTick(function () {
-            self.gridColumnApi.autoSizeColumns(['sbj']);   
-         })
+         //this.$nextTick(() => self.gridColumnApi.autoSizeColumns(['sbj']));   
+         this.$nextTick(() => self.gridApi.sizeColumnsToFit())
       },
       dateFormatter(params) {
          return format(params.value, 'DD.MM.YYYY')
@@ -85,14 +87,16 @@ export default {
    beforeMount() {
       this.gridOptions = {}
       this.columnDefs = [
-         {headerName: 'Договор', field: 'cntrNum', width: 130, 
+         {headerName: 'Договор', field: 'cntrNum', width: 120, 
             checkboxSelection: true, headerCheckboxSelection: true},
-         {headerName: "Карточка", field: "json", width: 130, 
+         {headerName: "Карточка", field: "json", width: 100, 
             cellRendererFramework: 'InfoComponent'},
-         {headerName: 'Дата заключения', field: 'cntrConfirmDate', width: 180, 
+         {headerName: 'Дата заключения', field: 'cntrConfirmDate', width: 120, 
             valueFormatter: this.dateFormatter},
-         {headerName: 'Место размещения', field: 'placement', resizable: true, width: 350},
-         {headerName: 'Название', field: 'sbj', resizable: true, width: 250}
+         {headerName: 'Место размещения', field: 'placement', resizable: true, 
+            width: 250, tooltipField: 'placement'},
+         {headerName: 'Название', field: 'sbj', 
+            tooltipField: 'sbj', resizable: true, width: 350}
       ];
    }
 }

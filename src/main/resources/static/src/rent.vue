@@ -38,61 +38,19 @@
       </v-flex>
    </v-layout>
    <v-layout row wrap>
-      <v-flex xs12>
-         <v-data-table
-         v-model="selected"
-         :headers="headers"
-         :items="sheets"
-         item-key="sheetName"
-         select-all
-         :pagination.sync="pagination"
-         >
-         <template slot="headers" slot-scope="props">
-            <tr>
-               <th>
-               <v-checkbox
-                  :input-value="props.all"
-                  :indeterminate="props.indeterminate"
-                  primary
-                  hide-details
-                  @click.stop="toggleAll"
-               ></v-checkbox>
-               </th>
-               <th
-               v-for="header in props.headers"
-               :key="header.text"
-               :class="['column sortable', pagination.descending ? 'desc' : 'asc', header.value === pagination.sortBy ? 'active' : '']"
-               @click="changeSort(header.value)"
+      <v-flex xs-12>
+         <ag-grid-vue style="width: 100%; height: 400px;"
+               :gridOptions="gridOptions"
+               class="ag-theme-material"
+               :columnDefs="columnDefs"
+               :rowData="rowData"
+               rowSelection="multiple"
+               pagination=false
+               paginationPageSize=50
+               @grid-ready="onGridReady"
                >
-               <v-icon small>arrow_upward</v-icon>
-               {{ header.text }}
-               </th>
-            </tr>
-         </template>
-
-         <template slot="items" slot-scope="props">
-            <tr :active="props.selected" @click="props.selected = !props.selected">
-               <td>
-               <v-checkbox
-                  :input-value="props.selected"
-                  primary
-                  hide-details
-               ></v-checkbox>
-               </td>
-               <td :class="'cntr-' + props.item.isExists">{{ props.item.sheetName }}</td>
-               <td :class="'cntr-' + props.item.isExists">{{ props.item.subject }}</td>
-            </tr>
-         </template>
-         </v-data-table>
+         </ag-grid-vue>
       </v-flex>
-      <!--<v-flex xs7>
-      <div class="headline">Журнал</div>
-      <div ref="log" style="max-height: 300px; overflow-y: auto">
-         <div :class="'log-' + item.level" v-for="(item, index) in logitems" :key="index">
-         {{ item.message }}
-         </div>
-         </div>
-      </v-flex>-->
    </v-layout>
 </v-container>
 </template>
@@ -100,23 +58,22 @@
 <script>
 import axios from 'axios'
 import upload from './upload.vue'
+import {AgGridVue} from "ag-grid-vue";
 
 export default {
    components: {
-      'upload': upload
+      'upload': upload,
+      AgGridVue,
    },
    data () {
       return {
-         selected: [],
-         pagination: {
-         sortBy: 'sheetName'
-         },
-         headers: [
-            { text: 'Лист', value: 'sheetName' },
-            { text: 'Арендатор', value: 'subject' }
-         ],
-         sheets: [
-         ],
+         gridOptions: null,
+         gridApi: null,
+         gridColumnApi: null,
+
+         columnDefs: null,
+         rowData: [],
+
          isImportEnabled: false,
          isActive: false,
          importSettings: {
@@ -127,14 +84,40 @@ export default {
          }
       }
    },
+   beforeMount() {
+      this.gridOptions = {
+         isRowSelectable: rowNode => {
+            return !rowNode.data.isExists
+         },
+         getRowClass: params => {
+            return 'cntr-' + params.data.isExists
+         }
+      }
+      this.columnDefs = [
+         {headerName: 'Лист', field: 'sheetName', width: 150, 
+            sortable: true, checkboxSelection: true, headerCheckboxSelection: true},
+         {headerName: 'Загружен', field: 'isExists', hide: true, sort: "asc"},
+         {headerName: 'Арендатор', field: 'subject', 
+            sortable: true, width: 500, tooltipField: 'subject'}
+      ];
+   },
    methods: {
+      onGridReady() {
+         this.gridApi = this.gridOptions.api;
+         this.gridColumnApi = this.gridOptions.columnApi;
+      },
       onSuccessUpload(data) {
-         this.sheets = data.sheets
+         this.rowData = data.sheets
          this.isImportEnabled = true
+
+         const self = this
+         this.$nextTick(() => self.gridApi.sizeColumnsToFit())
       },
       importSelected() {
          let self = this
-         let codes = self.selected.reduce((map, sheet) => {map[sheet.sheetName] = 1; return map;}, {})
+         let codes = self.gridApi.getSelectedNodes()
+            .reduce((map, rowNode) => {map[rowNode.data.sheetName] = 1; return map;}, {})
+         
          self.isImportEnabled = false
          self.isActive = true
          self.importSettings.threshFull *= 1
@@ -149,20 +132,7 @@ export default {
                self.isImportEnabled = true
                self.isActive = false
             })
-      },
-      toggleAll() {
-         if (this.selected.length) this.selected = []
-         else this.selected = this.sheets.filter(item => !item.isExists)
-      },
-      changeSort (column) {
-         if (this.pagination.sortBy === column) {
-            this.pagination.descending = !this.pagination.descending
-         } else {
-            this.pagination.sortBy = column
-            this.pagination.descending = false
-         }
-      },
-
+      }
    }
 }
 </script>

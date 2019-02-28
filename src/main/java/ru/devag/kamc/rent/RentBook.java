@@ -14,9 +14,6 @@ import ru.devag.kamc.BookInfo;
 import ru.devag.kamc.rent.PropertyInfo.PropType;
 
 public class RentBook extends BookInfo<RentSheet> {
-
-   public List<RentSheet> sheets = new ArrayList<>();
-
     public RentBook(XSSFWorkbook workbook) {
         super(workbook);
     }

@@ -8,7 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public abstract class BookInfo<T extends SheetInfo> {
 
-   public List<SheetInfo> sheets = new ArrayList<>();
+   public List<T> sheets = new ArrayList<>();
 
    public BookInfo(XSSFWorkbook workbook) {
       sheets.clear();
@@ -19,6 +19,10 @@ public abstract class BookInfo<T extends SheetInfo> {
          Sheet sheet = sheetIt.next();
          sheets.add(importSheet(sheet));
       }
+   }
+
+   public List<T> getSheets() {
+      return sheets;
    }
 
    protected abstract T importSheet(Sheet sheet);
