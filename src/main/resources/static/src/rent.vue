@@ -1,7 +1,7 @@
 <template>
 <v-container grid-list-xs fluid>
    <v-layout row wrap>
-      <v-flex xs10 sm5>
+      <v-flex xs10 sm4>
          <upload source-type="rent" v-on:upload-success="onSuccessUpload"></upload>
       </v-flex>
       <v-flex xs2 sm1>
@@ -12,28 +12,40 @@
          >
          </v-progress-circular>
       </v-flex>
-      <v-flex xs12 sm6>
-         <v-layout row wrap>
-         <v-flex sm12 md4>
-            <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
-         </v-flex>
-         <v-flex sm4 md3>
-            <v-checkbox
-               v-model="importSettings.ignoreAll"
-               label="Игнор. любые"
-            ></v-checkbox>
-         </v-flex>
-         <v-flex sm4 md4>
-            <v-checkbox caption
-               v-model="importSettings.createNew"
-               label="Создавать новые"
-            ></v-checkbox>
-         </v-flex>
-         <v-flex sm4 md1>
-            <v-text-field
-               v-model="importSettings.threshFull"
-            ></v-text-field>
-         </v-flex>
+      <v-flex xs12 sm7>
+         <v-layout row wrap justify-space-between>
+            <v-flex sm8 lg3 >
+               <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
+            </v-flex>
+            <v-flex sm4 lg1>
+               <v-text-field
+                  v-model="importSettings.threshFull"
+               ></v-text-field>
+            </v-flex>
+            <v-flex sm3 lg2>
+               <v-checkbox
+                  v-model="importSettings.enableAddressSearch"
+                  label="Искать по адресу"
+               ></v-checkbox>
+            </v-flex>
+            <v-flex sm3 lg2>
+               <v-checkbox
+                  v-model="importSettings.ignoreAll"
+                  label="Игнор. любые"
+               ></v-checkbox>
+            </v-flex>
+            <v-flex sm3 lg2>
+               <v-checkbox caption
+                  v-model="importSettings.createNew"
+                  label="Создавать новые"
+               ></v-checkbox>
+            </v-flex>
+            <v-flex sm3 lg2>
+               <v-checkbox caption
+                  v-model="importSettings.createNetw"
+                  label="Создавать сети"
+               ></v-checkbox>
+            </v-flex>
          </v-layout>
       </v-flex>
    </v-layout>
@@ -80,7 +92,9 @@ export default {
             ignoreCheap: false,
             ignoreAll: false,
             threshFull: 5,
-            createNew: false
+            createNew: false,
+            createNetw: false,
+            enableAddressSearch: true
          }
       }
    },

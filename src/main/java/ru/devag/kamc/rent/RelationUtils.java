@@ -98,12 +98,12 @@ public class RelationUtils {
       rbsRepo.save(rbs);
    }
 
-   public void createMS(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
-      create(sheet, property, "TITYPE_TITLE_MUNIC", "MS", objId, sbjId, 4324L);
+   public Long createMS(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
+      return create(sheet, property, "TITYPE_TITLE_MUNIC", "MS", objId, sbjId, 4324L);
    }
 
-   public void createMK(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
-      create(sheet, property, "CLF_TITTYPE_MUNKAZ", "MK", objId, sbjId, 4303L);
+   public Long createMK(RentSheet sheet, PropertyInfo property, Long objId, Long sbjId) {
+      return create(sheet, property, "CLF_TITTYPE_MUNKAZ", "MK", objId, sbjId, 4303L);
    }
 
    public void createTrat(RentSheet sheet, PropertyInfo property, Long objId) {

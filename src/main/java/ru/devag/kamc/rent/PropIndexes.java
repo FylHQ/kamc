@@ -15,6 +15,7 @@ public class PropIndexes {
    public static final String PROP_YEAR_SUM = "годовая сумма арендной платы";
    public static final String PROP_YEAR = "год выпуска";
    public static final String PROP_COUNT = "кол-во";
+   public static final String PROP_INFO = "пояснительная информация";
 
    int numIndex = -1;
    int nameIndex = -1;
@@ -27,6 +28,7 @@ public class PropIndexes {
    int yearSumIndex = -1;
    int yearIndex = -1;
    int countIndex = -1;
+   int infoIndex = -1;
 
    int set(Cell cell) {
       int index = cell.getColumnIndex();
@@ -54,6 +56,8 @@ public class PropIndexes {
          yearIndex = index;
       } else if (cellText.startsWith(PROP_COUNT)) {
          countIndex = index;
+      } else if (cellText.startsWith(PROP_INFO)) {
+         infoIndex = index;
       } else {
          index = -1;
       }

@@ -78,7 +78,8 @@ public class RentBook extends BookInfo<RentSheet> {
               } else if (propertyInfo.propLength != null ||
                     ((propertyInfo.propName.indexOf(" сете") != -1 || 
                         propertyInfo.propName.indexOf(" сеть") != -1 ||
-                        propertyInfo.propName.indexOf(" сети") != -1
+                        propertyInfo.propName.indexOf(" сети") != -1 ||
+                        propertyInfo.propName.indexOf("Кабельная линия") != -1
                     ) && 
                     !propertyInfo.propName.contains("Адаптер сети") &&
                     !propertyInfo.propName.contains("Насос сетевой") &&

@@ -22,7 +22,8 @@ public class PropertyInfo {
 
    public Integer propNum;
    public String propName = null;
-   public String propPlacement = null;
+   public String propAddressFull = null;
+   public String propAddressShort = null;
    public Double propArea = null;
    public Double propLength = null;
    public String propCadnum = null;
@@ -31,8 +32,10 @@ public class PropertyInfo {
    public Double propYearSum = null;
    public String propYear = null;
    public Integer propCount = null;
+   public String propInfo = null;
    public boolean isPart = false;
-   public String propAddress = null;
+   
+   public String addressSearch = null;
 
    public PropType propType;
 
@@ -54,21 +57,25 @@ public class PropertyInfo {
       } else if (index == indexes.placementIndex) {
          String ceilStr = cell.toString();
          if (!StringUtils.isEmpty(ceilStr)) {
-            propPlacement = ceilStr;
+            propAddressFull = ceilStr;
             
-            if (ceilStr.startsWith("г.") && !ceilStr.equalsIgnoreCase("г. Петропавловск-Камчатский")) {
-               Pattern p = Pattern.compile("г\\.\\s*Петропавловск\\s*-\\s*(Камчатский|Камччатский),{0,1}\\s*(ул\\.|ш\\.|пр\\.|проезд|пер\\.|шоссе|проспект|б-р|площадь|улица)\\s+(.*)", Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
+            if ((ceilStr.startsWith("г.") || ceilStr.startsWith("г Петро")) && 
+                  !ceilStr.equalsIgnoreCase("г. Петропавловск-Камчатский") &&
+                  !ceilStr.equalsIgnoreCase("г Петропавловск-Камчатский")) {
+               Pattern p = Pattern.compile("г[\\.\\s]*Петропавловск\\s*-\\s*(Камчатский|Камччатский),{0,1}\\s*(ул\\.|ш\\.|пр\\.|проезд|пер\\.|шоссе|проспект|б-р|площадь|улица)\\s+(.*)", Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
                Matcher m = p.matcher(ceilStr);
                if (m.find()) {
                   ceilStr = m.group(3);
+                  propAddressShort = m.group(2) + " " + m.group(3);
                } else {
-                  p = Pattern.compile("г\\.\\s*Петропавловск\\s*-\\s*(Камчатский|Камччатский),{0,1}\\s*(.*)", Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
+                  p = Pattern.compile("г[\\.\\s]*Петропавловск\\s*-\\s*(Камчатский|Камччатский),{0,1}\\s*(.*)", Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
                   m = p.matcher(ceilStr);
                   if (m.find()) {
                      ceilStr = m.group(2);
                   }
+                  propAddressShort = ceilStr;
                }
-               propAddress = ceilStr.replace("д. ", " ").replace("д.", " ")
+               addressSearch = ceilStr.replace("д. ", " ").replace("д.", " ")
                   .replaceAll("\\s+", " ") //много пробелов
                   .replaceAll("\\s+д\\s+(\\d+)", " $1") //д без точки
                   .replaceAll("\\s+№(\\d+)", " $1") //символ номера
@@ -76,6 +83,11 @@ public class PropertyInfo {
                   .replaceAll("(\\d)\\s+([а-яА-ЯеЁ])$", "$1$2") //пробел между номером и литерой в конце
                   ; 
                //logger.info("{}", propAddress);
+            } else {
+               if (!ceilStr.equalsIgnoreCase("г. Петропавловск-Камчатский") &&
+                  !ceilStr.equalsIgnoreCase("г Петропавловск-Камчатский")) {
+                     propAddressShort = propAddressFull;
+               }
             }
          }
 
@@ -96,6 +108,8 @@ public class PropertyInfo {
       } else if (index == indexes.countIndex) {
          Double val = getNumeric(cell);
          propCount = val == null ? null : val.intValue();
+      } else if (index == indexes.infoIndex) {
+         propInfo = cell.toString();
       }
    }
 }

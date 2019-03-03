@@ -80,19 +80,27 @@ public class ImportService {
    @Autowired
    I3LandComponentRepository landRepo;
 
+   @Autowired
+   private I3RtnBstRepository rbsRepo;
+
    private ConcurrentHashMap<String, BookInfo<? extends SheetInfo>> cache = new ConcurrentHashMap<>();
 
    private Long depSbjId = -1L;
    private Long pkgoSbjId = -1L;
    private Long lptyCatId = -1L;
    private Long lptyClfId = -1L;
+   private Long orderId = null;
 
    boolean createNew = false;
+   boolean createNetw = false;
    boolean ignoreAll = false;
+   boolean enableAddressSearch = true;
 
    public void init(Map<String, Object> settings) {
       this.ignoreAll = (Boolean)settings.getOrDefault("ignoreAll", false);
       this.createNew = (Boolean)settings.getOrDefault("createNew", false);
+      this.createNetw = (Boolean)settings.getOrDefault("createNetw", false);
+      this.enableAddressSearch = (Boolean)settings.getOrDefault("enableAddressSearch", true);
 
       int threshFull = (Integer)settings.getOrDefault("threshFull", 10);
 
@@ -104,6 +112,14 @@ public class ImportService {
 
       depSbjId = sbjSearch.getDepSbjId();
       pkgoSbjId = sbjSearch.getPKGOSbjId();
+
+      Optional<I3Basement> doc = bstRepo.findById(58121073L);
+      if (doc.isPresent()) {
+         this.orderId = doc.get().getId();
+      } else {
+         this.orderId = null;
+      }
+      
    }
 
    public void put(String code, BookInfo<? extends SheetInfo> bookInfo) {
@@ -178,15 +194,28 @@ public class ImportService {
                throw new RuntimeException("Не найден хотя бы один объект");
             } else {
                if (createNew) {
-                  if (property.propType != PropType.APRM && property.propType != PropType.NETW) {
-                     I3Object obj = objCreate.createKfxa(sheet, property);
+                  if ((property.propType == PropType.NETW && createNetw) || 
+                     (property.propType != PropType.APRM && property.propType != PropType.NETW)) {
+
+                     I3Object obj;
+                     if (property.propType == PropType.NETW) {
+                        obj = objCreate.createNetw(sheet, property);
+                     } else {
+                        obj = objCreate.createKfxa(sheet, property);
+                     }
+                     
                      created.add("[" + sheet.cntrNum + "] " + property.propNum + " " + property.propName);
                      logger.warn("create [{}] {}", property.propNum, obj.getObjDescription());
                      objId = obj.getId();
 
                      rtnUtils.createRent(false, sheet, property, obj.getId(), sbj.getId(), bst.getId());
                      rtnUtils.createMS(sheet, property, obj.getId(), pkgoSbjId);
-                     rtnUtils.createMK(sheet, property, obj.getId(), depSbjId);
+                     Long rtnId = rtnUtils.createMK(sheet, property, obj.getId(), depSbjId);
+                     
+                     if (property.propType == PropType.NETW && orderId != null) {
+                        I3RtnBst rbs = new I3RtnBst(rtnId, orderId, 3204L);
+                        rbsRepo.save(rbs);
+                     }
 
                      rtnUtils.createTrat(sheet, property, objId);
                      addProtoObject(proto, objId, property);
@@ -230,9 +259,11 @@ public class ImportService {
       if (objIdByName > 0)
          return objIdByName;
 
-      Long objIdByAddress = objSearch.findObjByAddress(property);
-      if (objIdByAddress > 0) {
-         return objIdByAddress;
+      if (enableAddressSearch) {
+         Long objIdByAddress = objSearch.findObjByAddress(property);
+         if (objIdByAddress > 0) {
+            return objIdByAddress;
+         }
       }
 
       objIdByName = objSearch.findObjByName(property, false, sbjObjIds);

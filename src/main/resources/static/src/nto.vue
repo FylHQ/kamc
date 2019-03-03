@@ -19,7 +19,7 @@
                      :rowData="rowData"
                      rowSelection="multiple"
                      pagination=false
-                     paginationPageSize=50
+                     paginationAutoPageSize=true
                      >
                </ag-grid-vue>
             </v-flex>

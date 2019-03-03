@@ -99,7 +99,9 @@ gen = Generator('i3/pandora@ora11g/kamc')
 #tables = ['I3_TITL_COMPONENT', 'I3_TRAT_PROPERTY', 'I3_TRAT_COMPONENT']
 #tables = ['I3_RTN_BST']
 #tables = ['I3_LPTY_PROTOCOL', 'I3_LPTY_PAYMENT', 'I3_LPTY_PTL_OBJ']
-tables = ['I3_LPTY_PTL_OBJ']
+#tables = ['I3_LPTY_PTL_OBJ']
+#tables = ['I3_ADDRESS', 'I3_OBJ_ADD']
+tables = ['I3_EXT_ATTRIBUTE_VALUE', 'I3_EXT_ATTRIBUTES']
 #javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
 javaSrc = 'C:/prj/KAMC/web/src/main/java'
 gen.store(tables, javaSrc)

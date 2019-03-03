@@ -21,6 +21,14 @@ public class I3RtnBst {
    @Column(name = "i3rbs_type", nullable = false)
    private Long rbsType;
 
+   public I3RtnBst() {
+   }
+
+   public I3RtnBst(Long rtnId, Long bstId, Long rbsType) {
+      this.rtnRelationId = rtnId;
+      this.bstBasementId = bstId;
+      this.rbsType = rbsType;
+   }
 
    public Long getId() {
       return id;

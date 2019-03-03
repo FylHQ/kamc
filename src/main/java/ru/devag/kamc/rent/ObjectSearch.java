@@ -263,27 +263,27 @@ public class ObjectSearch {
    }
 
    public Long findObjByAddress(PropertyInfo property) {
-      if (property.propAddress != null) {
+      if (property.addressSearch != null) {
          if (property.propType == PropType.NETW || property.propType != PropType.APRM) {
-            List<Long> netws = netwAddrObjIds.get(property.propAddress.toLowerCase());
+            List<Long> netws = netwAddrObjIds.get(property.addressSearch.toLowerCase());
             if (netws != null && netws.size() > 0) {
                Long objId = getClosestByNameTwoPhase(netws, property.propName);
                if (objId < 0) {
                   objId = getClosestByName(netws, property.propName, false, 40);
                }
                if (objId > 0) {
-                  logger.info("ok адрес (сети) [{}] {} [{}]", property.propNum, property.propName, property.propAddress);
+                  logger.info("ok адрес (сети) [{}] {} [{}]", property.propNum, property.propName, property.addressSearch);
                   netws.remove(objId);
                   return objId;
                }
             }
          }
          if (property.propType == PropType.APRM || property.propType != PropType.NETW) {
-            List<Long> aprms = aprmAddrObjIds.get(property.propAddress.toLowerCase());
+            List<Long> aprms = aprmAddrObjIds.get(property.addressSearch.toLowerCase());
             if (aprms != null && aprms.size() > 0) {
                Long objId = getClosestByNameTwoPhase(aprms, property.propName);
                if (objId > 0) {
-                  logger.info("ok адрес (помещ) [{}] {} [{}]", property.propNum, property.propName, property.propAddress);
+                  logger.info("ok адрес (помещ) [{}] {} [{}]", property.propNum, property.propName, property.addressSearch);
                   aprms.remove(objId);
                   return objId;
                }
