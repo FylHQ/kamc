@@ -1,6 +1,6 @@
 <template>
    <v-content>
-         <v-text-field label="Загрузить файл" @click='pickFile' v-model='imageName' prepend-icon='attach_file'></v-text-field>
+         <v-text-field :label="name" @click='pickFile' v-model='imageName' prepend-icon='attach_file'></v-text-field>
          <input
             type="file"
             style="display: none"
@@ -14,7 +14,7 @@
 import axios from 'axios'
 
 export default {
-   props: ['sourceType'],
+   props: ['sourceType', 'name'],
    data () {
       return {
          imageName: null,

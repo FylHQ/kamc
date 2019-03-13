@@ -2,7 +2,7 @@
 <v-container grid-list-xs fluid>
    <v-layout row wrap>
       <v-flex xs10 sm4>
-         <upload source-type="rent" v-on:upload-success="onSuccessUpload"></upload>
+         <upload source-type="rent" name="Загрузить договоры НФ" v-on:upload-success="onSuccessUpload"></upload>
       </v-flex>
       <v-flex xs2 sm1>
          <v-progress-circular

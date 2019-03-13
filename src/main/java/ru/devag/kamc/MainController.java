@@ -128,11 +128,11 @@ public class MainController {
     }
 
     @PostMapping("/upload")
-    public BookInfo<?> singleFileUpload(@RequestParam("xlsx") MultipartFile file, @RequestParam("sourceType") String sourceType) throws IOException {
+    public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file, @RequestParam("sourceType") String sourceType) throws IOException {
         InputStream is = file.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(is);
 
-        BookInfo<?> rentBook;
+        BookInfo rentBook;
         if (sourceType.equals("rent")) {
             rentBook = new RentBook(workbook);
 
@@ -145,6 +145,8 @@ public class MainController {
             importSvc.put("rent", rentBook);
         } else if (sourceType.equals("nto")) {
             rentBook = new NtoBook(workbook); 
+        } else if (sourceType.equals("nto_scheme")) {
+            rentBook = new NtoSchemeBook(workbook); 
         } else {
             logger.error("Unsupported source type: {}", sourceType);
             rentBook = null;
@@ -182,7 +184,7 @@ public class MainController {
 
     @PostMapping("/import")
     public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
-        RentBook rentBook = (RentBook) importSvc.get("rent");
+        BookInfo rentBook = importSvc.get("rent");
         if (rentBook == null) {
             return "Книга не загружена";
         }
@@ -194,8 +196,9 @@ public class MainController {
         importSvc.init(ir.settings);
 
         List<String> ignored = new ArrayList<>();
-        List<RentSheet> sheets = new ArrayList<>();
-        for (RentSheet sheet : rentBook.getSheets()) {
+        List<SheetInfo<?>> sheets = new ArrayList<>();
+        for (SheetInfo<?> sheetInfo : rentBook.getSheets()) {
+            RentSheet sheet = (RentSheet)sheetInfo;
             if (ir.sheetCodes.containsKey(sheet.sheetName)) {
                 if (StringUtils.isEmpty(sheet.inn)) {
                     logger.error("Не указан ИНН: {}", sheet.subject);

@@ -3,10 +3,13 @@
    <v-layout row wrap>
       <v-flex xs12>
          <v-layout row wrap>
-            <v-flex xs-6>
-               <upload source-type="nto" v-on:upload-success="onSuccessUpload"></upload>
+            <v-flex xs-4>
+               <upload source-type="nto" name="Загрузить договоры НТО" v-on:upload-success="onSuccessUpload"></upload>
             </v-flex>
-            <v-flex xs-6>
+            <v-flex xs-4>
+               <upload source-type="nto_scheme" name="Загрузить схему НТО" v-on:upload-success="onSuccessSchemeUpload"></upload>
+            </v-flex>
+            <v-flex xs-4>
                <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
             </v-flex>
          </v-layout>
@@ -72,6 +75,9 @@ export default {
          self.isImportEnabled = true
          //this.$nextTick(() => self.gridColumnApi.autoSizeColumns(['sbj']));   
          this.$nextTick(() => self.gridApi.sizeColumnsToFit())
+      },
+      onSuccessSchemeUpload(data) {
+         console.log(data.sheets[0].items);
       },
       dateFormatter(params) {
          return format(params.value, 'DD.MM.YYYY')

@@ -4,18 +4,17 @@ import static ru.devag.kamc.ImportUtils.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.devag.kamc.SheetInfo;
 
-public class RentSheet extends SheetInfo {
+public class RentSheet extends SheetInfo<PropertyInfo> {
     private static Logger logger = LoggerFactory.getLogger(RentSheet.class);
 
     public static final String SBJ = "Арендатор:";
@@ -36,7 +35,9 @@ public class RentSheet extends SheetInfo {
     public Double cntrYearSum;
     public boolean isExists;
 
-    public List<PropertyInfo> property = new ArrayList<>();
+    public RentSheet(Sheet sheet) {
+        super(PropertyInfo.class);
+    }
 
     void set(Cell cell) {
         String cellText = cell.toString();
@@ -74,5 +75,6 @@ public class RentSheet extends SheetInfo {
         } else if (cellText.startsWith("Размер годовой арендной платы по договору:")) {
             cntrYearSum = getNumeric(cellText.substring(CNTR_YEAR_SUM.length()).replace("руб.", "").replace("руб", "").trim());
         }
-   }
+    }
+
 }

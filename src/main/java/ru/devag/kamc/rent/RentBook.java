@@ -2,7 +2,6 @@ package ru.devag.kamc.rent;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -13,13 +12,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.devag.kamc.BookInfo;
 import ru.devag.kamc.rent.PropertyInfo.PropType;
 
-public class RentBook extends BookInfo<RentSheet> {
+public class RentBook extends BookInfo {
     public RentBook(XSSFWorkbook workbook) {
         super(workbook);
     }
     
     protected RentSheet importSheet(Sheet sheet) {
-      RentSheet rentSheet = new RentSheet();
+      RentSheet rentSheet = new RentSheet(sheet);
+      rentSheet.items = new ArrayList<>();
       rentSheet.sheetName = sheet.getSheetName();
       Iterator<Row> rowIt = sheet.iterator();
       boolean isTable = false;
@@ -91,7 +91,7 @@ public class RentBook extends BookInfo<RentSheet> {
               } else {
                 propertyInfo.propType = PropType.KFXA;
               }
-              rentSheet.property.add(propertyInfo);
+              rentSheet.items.add(propertyInfo);
           }
       }
 

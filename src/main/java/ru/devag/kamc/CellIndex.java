@@ -1,4 +1,4 @@
-package ru.devag.kamc.nto;
+package ru.devag.kamc;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

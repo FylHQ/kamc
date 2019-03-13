@@ -7,14 +7,17 @@ import org.slf4j.LoggerFactory;
 
 import ru.devag.kamc.BookInfo;
 
-public class NtoBook extends BookInfo {
+public class NtoSchemeBook extends BookInfo {
    private static Logger logger = LoggerFactory.getLogger(NtoBook.class);
 
-   public NtoBook(XSSFWorkbook workbook) {
+   public NtoSchemeBook(XSSFWorkbook workbook) {
       super(workbook);
    }
 
-   protected NtoSheet importSheet(Sheet sheet) {
-      return new NtoSheet(sheet);
+   protected NtoSchemeSheet importSheet(Sheet sheet) {
+      NtoSchemeSheet ntoSchemeSheet = new NtoSchemeSheet(sheet);
+      return ntoSchemeSheet;
    }
+
+   
 }

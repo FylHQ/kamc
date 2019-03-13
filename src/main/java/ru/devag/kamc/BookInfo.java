@@ -4,11 +4,14 @@ import java.util.*;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public abstract class BookInfo<T extends SheetInfo> {
+public abstract class BookInfo {
+   private static Logger logger = LoggerFactory.getLogger(BookInfo.class);
 
-   public List<T> sheets = new ArrayList<>();
+   public List<SheetInfo<?>> sheets = new ArrayList<>();
 
    public BookInfo(XSSFWorkbook workbook) {
       sheets.clear();
@@ -21,9 +24,9 @@ public abstract class BookInfo<T extends SheetInfo> {
       }
    }
 
-   public List<T> getSheets() {
+   public List<SheetInfo<?>> getSheets() {
       return sheets;
    }
 
-   protected abstract T importSheet(Sheet sheet);
+   protected abstract SheetInfo<?> importSheet(Sheet sheet);
 }

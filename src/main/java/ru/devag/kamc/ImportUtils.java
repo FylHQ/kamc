@@ -19,8 +19,13 @@ public class ImportUtils {
 
    public static Double getNumeric(String strVal) {
       if (StringUtils.countMatches(strVal, ".") == 2) {
-         logger.warn("Найдено два разделителя. Убираем первый: {}", strVal);
-         strVal = strVal.replaceFirst("\\.", "");
+         if (strVal.endsWith(".00")) {
+            logger.warn("Найдено два разделителя. Убираем .00 в конце: {}", strVal);
+            strVal = strVal.substring(0, strVal.length() - 3);
+         } else {
+            logger.warn("Найдено два разделителя. Убираем первый: {}", strVal);
+            strVal = strVal.replaceFirst("\\.", "");
+         }
       }
       if (!strVal.equals("")) {
          try {
@@ -33,6 +38,28 @@ public class ImportUtils {
       return null;
    }
    
+   public static String getString(Cell cell) {
+      switch (cell.getCellType()) {
+         case STRING:
+            return cell.getStringCellValue();
+         case NUMERIC:
+            return String.valueOf(cell.getNumericCellValue());
+         case FORMULA:
+            switch(cell.getCachedFormulaResultType()) {
+               case STRING:
+                  return cell.getRichStringCellValue().getString();
+               default:
+                  logger.debug("Unsupported string cell formula type: {}", cell.getCellType());
+                  return null;      
+            }
+         case BLANK:
+            return null;
+         default:
+            logger.debug("Unsupported string cell type: {}", cell.getCellType());
+            return null;      
+      }
+   }
+
    public static Double getNumeric(Cell cell) {
       switch (cell.getCellType()) {
          case NUMERIC:
@@ -49,13 +76,13 @@ public class ImportUtils {
                   logger.error("Cell formula: {}/{}", cell.getRow().getRowNum(), cell.getColumnIndex());
                   return getNumeric(strFormula);
                default:
-                  logger.debug("Unsupported cell formula type: {}", cell.getCellType());
+                  logger.debug("Unsupported numeric cell formula type: {}", cell.getCellType());
                   return null;      
             }
          case BLANK:
             return null;
          default:
-            logger.error("Unsupported cell type: {}", cell.getCellType());
+            logger.error("Unsupported numeric cell type: {}", cell.getCellType());
             return null;
       
       }

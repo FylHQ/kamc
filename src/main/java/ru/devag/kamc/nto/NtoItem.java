@@ -1,6 +1,7 @@
 package ru.devag.kamc.nto;
 
 import java.util.Date;
+import ru.devag.kamc.CellIndex;
 
 public class NtoItem {
    @CellIndex("№ договора")

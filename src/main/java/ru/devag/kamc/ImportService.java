@@ -83,7 +83,7 @@ public class ImportService {
    @Autowired
    private I3RtnBstRepository rbsRepo;
 
-   private ConcurrentHashMap<String, BookInfo<? extends SheetInfo>> cache = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
    private Long depSbjId = -1L;
    private Long pkgoSbjId = -1L;
@@ -122,11 +122,11 @@ public class ImportService {
       
    }
 
-   public void put(String code, BookInfo<? extends SheetInfo> bookInfo) {
+   public void put(String code, BookInfo bookInfo) {
       cache.put(code, bookInfo);
    }
 
-   public BookInfo<? extends SheetInfo> get(String code) {
+   public BookInfo get(String code) {
       return cache.get(code);
    }
 
@@ -176,7 +176,7 @@ public class ImportService {
       I3LptyProtocol proto = createProtocol(sheet, lpty, sbjBst.getId(), sbj);
       createPayments(proto, sheet);
 
-      for (PropertyInfo property: sheet.property) {
+      for (PropertyInfo property: sheet.items) {
          Long objId = getObjId(property, sbj.getId());
 
          if (objId != null && objId > 0) {
