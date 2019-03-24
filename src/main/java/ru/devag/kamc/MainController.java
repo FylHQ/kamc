@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -128,43 +129,43 @@ public class MainController {
     }
 
     @PostMapping("/upload")
-    public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file, @RequestParam("sourceType") String sourceType) throws IOException {
+    public BookInfo singleFileUpload(@RequestParam("xlsx") MultipartFile file,
+            @RequestParam("sourceType") String sourceType) throws IOException {
         InputStream is = file.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(is);
 
-        BookInfo rentBook;
+        BookInfo book;
         if (sourceType.equals("rent")) {
-            rentBook = new RentBook(workbook);
+            book = new RentBook(workbook);
 
-            rentBook.sheets.forEach(sheet -> {
-                if (bstRepo.findByBstNumber(((RentSheet)sheet).cntrNum).isPresent()) {
-                    ((RentSheet)sheet).isExists = true;
+            book.sheets.forEach(sheet -> {
+                if (bstRepo.findByBstNumber(((RentSheet) sheet).cntrNum).isPresent()) {
+                    ((RentSheet) sheet).isExists = true;
                 }
             });
-    
-            importSvc.put("rent", rentBook);
+
+            importSvc.put(sourceType, book);
         } else if (sourceType.equals("nto")) {
-            rentBook = new NtoBook(workbook); 
+            book = new NtoBook(workbook);
+            importSvc.put(sourceType, book);
         } else if (sourceType.equals("nto_scheme")) {
-            rentBook = new NtoSchemeBook(workbook); 
+            book = new NtoSchemeBook(workbook);
+            importSvc.put(sourceType, book);
         } else {
             logger.error("Unsupported source type: {}", sourceType);
-            rentBook = null;
+            book = null;
         }
 
         workbook.close();
         is.close();
 
-        /*AtomicInteger count = new AtomicInteger(0);
-        rentBook.sheets.forEach(sheet -> {
-            sheet.property.forEach(prop -> {
-                if (prop.propType == PropType.NETW)
-                    count.incrementAndGet();
-            });
-        });
-        logger.error("netw {}", count.get());*/
+        /*
+         * AtomicInteger count = new AtomicInteger(0); rentBook.sheets.forEach(sheet ->
+         * { sheet.property.forEach(prop -> { if (prop.propType == PropType.NETW)
+         * count.incrementAndGet(); }); }); logger.error("netw {}", count.get());
+         */
 
-        return rentBook;
+        return book;
     }
 
     /*
@@ -182,24 +183,19 @@ public class MainController {
             return "NOT_FOUND";
     }
 
-    @PostMapping("/import")
-    public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
+    private String importRent(Map<String, Integer> codes, Map<String, Object> settings) {
         BookInfo rentBook = importSvc.get("rent");
         if (rentBook == null) {
             return "Книга не загружена";
         }
 
-        /*
-         * if (impResult != null && !impResult.isDone()) { return
-         * "Предыдущий импорт еще не завершен"; }
-         */
-        importSvc.init(ir.settings);
+        importSvc.initRent(settings);
 
         List<String> ignored = new ArrayList<>();
         List<SheetInfo<?>> sheets = new ArrayList<>();
         for (SheetInfo<?> sheetInfo : rentBook.getSheets()) {
-            RentSheet sheet = (RentSheet)sheetInfo;
-            if (ir.sheetCodes.containsKey(sheet.sheetName)) {
+            RentSheet sheet = (RentSheet) sheetInfo;
+            if (codes.containsKey(sheet.sheetName)) {
                 if (StringUtils.isEmpty(sheet.inn)) {
                     logger.error("Не указан ИНН: {}", sheet.subject);
                 } else {
@@ -223,8 +219,45 @@ public class MainController {
             ignored.forEach(item -> logger.debug(item));
         }
 
-        // return importSvc.importSheets(sheets);
         return "OK";
+    }
+
+    private String importNto(Map<String, Integer> codes, Map<String, Object> settings) {
+        BookInfo ntoBook = importSvc.get("nto");
+        BookInfo ntoSchemeBook = importSvc.get("nto_scheme");
+
+        if (ntoBook == null || ntoSchemeBook == null) {
+            return "Как минимум, одна из книг не загружена";
+        }
+
+        NtoSchemeSheet scheme = (NtoSchemeSheet)ntoSchemeBook.getSheets().get(0);
+        List<String> ignored = new ArrayList<>();
+        List<String> created = new ArrayList<>();
+
+        importSvc.initNto(settings);
+
+        for (NtoItem item: ((NtoSheet)ntoBook.getSheets().get(0)).items) {
+            if (codes.containsKey(String.valueOf(item.getRowId()))) {
+                try {
+                    importSvc.importNto(item, scheme, codes, ignored, created);
+                } catch (Exception e) {
+                    logger.error("Ошибка импорта [{}]: {}", item.getCntrNum(), e.getMessage());
+                }
+            }
+        }
+
+        return "OK";
+    }
+
+    @PostMapping("/import")
+    public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
+        if (ir.importCode.equals("rent")) {
+            return importRent(ir.codes, ir.settings);
+        } else if (ir.importCode.equals("nto")) {
+            return importNto(ir.codes, ir.settings);
+        } else {
+            return "Неизвестный тип импорта: " + ir.importCode;
+        }
     }
 
     @GetMapping("/test1")

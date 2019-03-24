@@ -4,13 +4,13 @@
       <v-flex xs12>
          <v-layout row wrap>
             <v-flex xs-4>
-               <upload source-type="nto" name="Загрузить договоры НТО" v-on:upload-success="onSuccessUpload"></upload>
+               <upload source-type="nto" :name="'Загрузить договоры НТО (' + ntoCount + ')'" v-on:upload-success="onSuccessUpload"></upload>
             </v-flex>
             <v-flex xs-4>
-               <upload source-type="nto_scheme" name="Загрузить схему НТО" v-on:upload-success="onSuccessSchemeUpload"></upload>
+               <upload source-type="nto_scheme" :name="'Загрузить схему НТО (' + schemeCount + ')'" v-on:upload-success="onSuccessSchemeUpload"></upload>
             </v-flex>
             <v-flex xs-4>
-               <v-btn color="success" :disabled="!isImportEnabled" @click="importSelected">Импортировать</v-btn>
+               <v-btn color="success" :disabled="!isCanImport" @click="importSelected">Импортировать</v-btn>
             </v-flex>
          </v-layout>
          <v-layout row wrap>
@@ -64,26 +64,49 @@ export default {
          gridColumnApi: null,
          columnDefs: null,
          rowData: [],
-         isImportEnabled: false
+         isNtoUploaded: false,
+         isSchemeUploaded: false,
+         isActiveImport: false,
+         ntoCount: 0,
+         schemeCount: 0
+      }
+   },
+   computed: {
+      isCanImport() {
+         return this.isNtoUploaded && this.isSchemeUploaded && !this.isActiveImport
       }
    },
    methods: {
       onSuccessUpload(data) {
          this.rowData = data.sheets[0].items
+         this.ntoCount = data.sheets[0].items.length
          //this.gridApi.sizeColumnsToFit(); 
          let self = this
-         self.isImportEnabled = true
+         self.isNtoUploaded = true
          //this.$nextTick(() => self.gridColumnApi.autoSizeColumns(['sbj']));   
          this.$nextTick(() => self.gridApi.sizeColumnsToFit())
       },
       onSuccessSchemeUpload(data) {
-         console.log(data.sheets[0].items);
+         this.isSchemeUploaded = true
+         this.schemeCount = data.sheets[0].items.length
       },
       dateFormatter(params) {
          return format(params.value, 'DD.MM.YYYY')
       },
       importSelected() {
-         alert('Пока не реализовано')
+         const self = this
+         const codes = self.gridApi.getSelectedNodes()
+            .reduce((map, rowNode) => {map[rowNode.data.rowId] = 1; return map;}, {})
+         
+         self.isActiveImport = true
+         axios.post('/import', {importCode: 'nto', codes: codes, settings: {}})
+            .then(result => {
+               self.isActiveImport = false
+            })
+            .catch(error => {
+               self.isActiveImport = false
+            })
+         
       }
    },
    mounted() {

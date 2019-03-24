@@ -11,7 +11,8 @@ public class NtoSchemeSheet extends SheetInfo<NtoSchemeItem> {
       super(sheet, NtoSchemeItem.class, 1);
    }
 
-   public boolean canAdd(NtoSchemeItem item) {
+   @Override
+   public boolean onAdd(NtoSchemeItem item, int rowNum) {
       return item.num != null || item.oldNum != null || 
          !StringUtils.isEmpty(item.placement) || 
          item.area != null || item.prclArea != null;

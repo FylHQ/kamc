@@ -135,7 +135,7 @@ export default {
          self.isImportEnabled = false
          self.isActive = true
          self.importSettings.threshFull *= 1
-         axios.post('/import', {sheetCodes: codes, settings: self.importSettings})
+         axios.post('/import', {importCode: 'rent', codes: codes, settings: self.importSettings})
             .then(result => {
                //self.logitems.push({message: "Результат: " + result.data})
                self.isImportEnabled = true

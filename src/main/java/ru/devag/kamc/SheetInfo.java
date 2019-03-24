@@ -23,7 +23,7 @@ public abstract class SheetInfo<T> {
    public List<T> items;
    public int headerSize = 1;
 
-   public boolean canAdd(T item) {
+   public boolean onAdd(T item, int rowNum) {
       return true;
    }
 
@@ -105,7 +105,7 @@ public abstract class SheetInfo<T> {
             }
          }
 
-         if (canAdd(item)) {
+         if (onAdd(item, row.getRowNum())) {
             items.add(item);
          }
       }

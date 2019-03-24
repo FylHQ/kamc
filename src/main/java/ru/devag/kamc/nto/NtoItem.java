@@ -4,6 +4,8 @@ import java.util.Date;
 import ru.devag.kamc.CellIndex;
 
 public class NtoItem {
+   Integer rowId;
+   
    @CellIndex("№ договора")
    Integer cntrNum;
 
@@ -461,6 +463,20 @@ public class NtoItem {
     */
    public void setPhone(String phone) {
       this.phone = phone;
+   }
+
+   /**
+    * @return the rowId
+    */
+   public Integer getRowId() {
+      return rowId;
+   }
+
+   /**
+    * @param rowId the rowId to set
+    */
+   public void setRowId(Integer rowId) {
+      this.rowId = rowId;
    }
 
    

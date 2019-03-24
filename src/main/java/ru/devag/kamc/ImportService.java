@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.devag.kamc.rent.*;
 import ru.devag.kamc.rent.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
+import ru.devag.kamc.nto.NtoItem;
+import ru.devag.kamc.nto.NtoSchemeSheet;
+import ru.devag.kamc.nto.NtoSheet;
 import ru.devag.kamc.repo.*;
 
 import java.text.ParseException;
@@ -96,7 +99,7 @@ public class ImportService {
    boolean ignoreAll = false;
    boolean enableAddressSearch = true;
 
-   public void init(Map<String, Object> settings) {
+   public void initRent(Map<String, Object> settings) {
       this.ignoreAll = (Boolean)settings.getOrDefault("ignoreAll", false);
       this.createNew = (Boolean)settings.getOrDefault("createNew", false);
       this.createNetw = (Boolean)settings.getOrDefault("createNetw", false);
@@ -122,6 +125,9 @@ public class ImportService {
       
    }
 
+   public void initNto(Map<String, Object> settings) {
+   }
+
    public void put(String code, BookInfo bookInfo) {
       cache.put(code, bookInfo);
    }
@@ -130,6 +136,20 @@ public class ImportService {
       return cache.get(code);
    }
 
+   @Transactional
+   public void importNto(NtoItem item, NtoSchemeSheet schemeSheet, Map<String, Integer> cntrNums, List<String> ignored, List<String> created) {
+      logger.info("Import {}", item.getCntrNum());
+
+      List<I3Subject> sbjs = sbjSearch.getSubjects(item);
+      if (sbjs.size() == 1) {
+         logger.info("SBJ unique: {}", sbjs.get(0).getSbjNumber());
+      } else if (sbjs.size() == 0) {
+         logger.info("SBJ not found: {}", item.getSbj());
+      } else {
+         logger.info("SBJ multiply: {}", item.getSbj());
+      }
+   }
+   
    @Transactional
    public void importSheet(RentSheet sheet, List<String> ignored, List<String> created) {
       I3Subject sbj = sbjSearch.getSbj(sheet);
@@ -296,7 +316,6 @@ public class ImportService {
       proto.setPtlVat(20d);
 
       lptyProtoRepo.save(proto);
-
       return proto;
    }
 

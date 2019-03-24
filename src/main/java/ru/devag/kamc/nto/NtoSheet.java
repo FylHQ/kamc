@@ -12,7 +12,12 @@ public class NtoSheet extends SheetInfo<NtoItem> {
    }
 
    @Override
-   public boolean canAdd(NtoItem item) {
-      return item.cntrNum != null && !StringUtils.isEmpty(item.status);
+   public boolean onAdd(NtoItem item, int rowNum) {
+      if (item.cntrNum != null && !StringUtils.isEmpty(item.status)) {
+         item.setRowId(rowNum);
+         return true;
+      } else {
+         return false;
+      }
    }
 }

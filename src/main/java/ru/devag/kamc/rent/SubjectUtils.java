@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 
 import ru.devag.kamc.model.*;
+import ru.devag.kamc.nto.NtoItem;
 import ru.devag.kamc.repo.*;
 
 @Service
@@ -59,6 +60,10 @@ public class SubjectUtils {
    }
 
 
+   public List<I3Subject> getSubjects(NtoItem item) {
+      return sbjRepo.findBySbjDescription(item.getSbj());
+   }
+   
    public I3Subject getSbj(RentSheet sheet) {
       List<I3CmpyComponent> cmpy = cmpyRepo.findByCmpInn(sheet.inn);
       if (cmpy.size() > 0) {
