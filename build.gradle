@@ -18,7 +18,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'application'
 
 group = 'ru.devag'
-version = '0.2.1'
+version = '0.2.3'
 sourceCompatibility = '1.8'
 
 repositories {

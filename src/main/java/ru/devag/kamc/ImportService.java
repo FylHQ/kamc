@@ -81,6 +81,9 @@ public class ImportService {
    I3ObjBstRepository objBstRepo;
 
    @Autowired
+   I3ObjBstTraitRepository objBstTraitRepo;
+
+   @Autowired
    I3LandComponentRepository landRepo;
 
    @Autowired
@@ -205,6 +208,11 @@ public class ImportService {
             objBst.setObjObjectId(objId);
             objBst.setBstBasementId(bst.getId());
             objBstRepo.save(objBst);
+
+            I3ObjBstTrait objBstTrait = new I3ObjBstTrait();
+            objBstTrait.setObbObjBstId(objBst.getId());
+            objBstTrait.setObtIsPartial(property.isPart ? "T" : "F");
+            objBstTraitRepo.save(objBstTrait);
 
             rtnUtils.createRent(true, sheet, property, objId, sbj.getId(), bst.getId());
             addProtoObject(proto, objId, property);
