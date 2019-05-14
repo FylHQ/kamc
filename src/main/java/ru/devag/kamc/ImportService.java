@@ -1,27 +1,33 @@
 package ru.devag.kamc;
 
 import javax.persistence.EntityManager;
+import javax.persistence.ParameterMode;
 import javax.persistence.PersistenceContext;
+import javax.persistence.StoredProcedureQuery;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.*;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ru.devag.kamc.rent.*;
+import ru.devag.kamc.nto.*;
 import ru.devag.kamc.rent.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
-import ru.devag.kamc.nto.NtoItem;
-import ru.devag.kamc.nto.NtoSchemeSheet;
-import ru.devag.kamc.nto.NtoSheet;
 import ru.devag.kamc.repo.*;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ImportService {
@@ -33,7 +39,10 @@ public class ImportService {
    private EntityManager entityManager;
 
    @Autowired
-   SubjectUtils sbjSearch;
+   private JdbcTemplate jdbcTemplate;
+
+   @Autowired
+   SubjectUtils sbjUtils;
    
    @Autowired
    ObjectSearch objSearch;
@@ -89,6 +98,21 @@ public class ImportService {
    @Autowired
    private I3RtnBstRepository rbsRepo;
 
+   @Autowired
+   I3NstoComponentRepository nstoRepo;
+
+   @Autowired
+   I3NstoProtocolRepository nstoProtoRepo;
+
+   @Autowired
+   I3PaymMethodicsRepository paymMethRepo;
+
+   @Autowired
+   I3CountCoeffRepository coeffRepo;
+
+   @Autowired
+   I3NstoKoefRepository nstoKoefRepo;
+
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
    private Long depSbjId = -1L;
@@ -110,14 +134,14 @@ public class ImportService {
 
       int threshFull = (Integer)settings.getOrDefault("threshFull", 10);
 
-      sbjSearch.init();
+      sbjUtils.init();
       objSearch.init(threshFull);
 
       lptyCatId = catRepo.findByCatCode("LPTY").getId();
       lptyClfId = clfRepo.findByCfvCode("CLF_CNTRTYPE_LEA_NF").getId();
 
-      depSbjId = sbjSearch.getDepSbjId();
-      pkgoSbjId = sbjSearch.getPKGOSbjId();
+      depSbjId = sbjUtils.getDepSbjId();
+      pkgoSbjId = sbjUtils.getPKGOSbjId();
 
       Optional<I3Basement> doc = bstRepo.findById(58121073L);
       if (doc.isPresent()) {
@@ -125,7 +149,6 @@ public class ImportService {
       } else {
          this.orderId = null;
       }
-      
    }
 
    public void initNto(Map<String, Object> settings) {
@@ -140,24 +163,82 @@ public class ImportService {
    }
 
    @Transactional
-   public void importNto(NtoItem item, NtoSchemeSheet schemeSheet, Map<String, Integer> cntrNums, List<String> ignored, List<String> created) {
-      logger.info("Import {}", item.getCntrNum());
+   public I3NstoProtocol importNtoItem(NtoItem item, NtoSchemeSheet schemeSheet, Map<String, Integer> cntrNums, List<String> ignored, List<String> created) {
+      logger.info("Договор: {}", item.getCntrNum());
 
-      List<I3Subject> sbjs = sbjSearch.getSubjects(item);
-      if (sbjs.size() == 1) {
-         logger.info("SBJ unique: {}", sbjs.get(0).getSbjNumber());
-      } else if (sbjs.size() == 0) {
-         logger.info("SBJ not found: {}", item.getSbj());
-      } else {
-         logger.info("SBJ multiply: {}", item.getSbj());
+      I3Subject sbj = sbjUtils.getSbj(item.getInn(), item.getSbj());
+      if (sbj == null) {
+         sbj = sbjUtils.createSbj(item);
+         logger.warn("Новый субъект: {}", item.getSbj());
       }
+
+      Optional<NtoSchemeItem> maybeSchemeItem = schemeSheet.items.stream()
+         .filter(schemeItem -> schemeItem.getNum() != null && schemeItem.getNum().equals(item.getScheme())).findAny();
+      if (!maybeSchemeItem.isPresent()) {
+         throw new RuntimeException("Item's scheme not found: " + item.getCntrNum());
+      }
+
+      I3NobjComponent nobj = objCreate.getOrCreateNobj(maybeSchemeItem.get(), item);
+
+      I3Basement bst = new I3Basement();
+      bst.setCatCategoryId(catRepo.findByCatCode("NSTO").getId());
+      bst.setBstNumber("XLSX_2019_NSTO_" + item.getRowId());
+      bst.setStsStatusId(1L);
+      bstRepo.save(bst);
+      
+      I3NstoComponent nsto = new I3NstoComponent();
+      nsto.setBstBasementId(bst.getId());
+      nsto.setNsoNumber(String.valueOf(item.getCntrNum()));
+      nsto.setNsoConfirmDate(item.getConfirmDate());
+      nsto.setNsoEndDate(item.getEndDate());
+
+      I3ClassifierValue clfType = clfRepo.findByCfvCode("CLF_CNTRTYPE_NTO");
+      List<I3ClassifierValue> types;
+      if (!StringUtils.isEmpty(item.getNotes()) && item.getNotes().contains("преим")) {
+         types = clfRepo.findByCfvValueAndCfvParentId("преимущественное право", clfType.getId());
+      } else {
+         types = clfRepo.findByCfvValueAndCfvParentId("аукцион", clfType.getId());
+      }
+      
+      nsto.setNsoCfvTypeId(types.get(0).getId());
+      nstoRepo.save(nsto);
+
+      I3ObjBst objBst = new I3ObjBst();
+      objBst.setObbType(2105L);
+      objBst.setObjObjectId(nobj.getObject().getId());
+      objBst.setBstBasementId(bst.getId());
+      objBstRepo.save(objBst);
+
+      I3SbjBst sbjBst = new I3SbjBst();
+      sbjBst.setSbjSubjectId(sbj.getId());
+      sbjBst.setBstBasementId(bst.getId());
+      sbjBst.setSbbType(4109L);
+      sbjBstRepo.save(sbjBst);
+
+      return createNstoProtocol(item, nsto, sbjBst.getId(), sbj.getId(), nobj.getObject().getId());
    }
-   
+
    @Transactional
-   public void importSheet(RentSheet sheet, List<String> ignored, List<String> created) {
-      I3Subject sbj = sbjSearch.getSbj(sheet);
-      if (sbj == null)
+   public void calcNstoProto(I3NstoProtocol proto) {
+      /*SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+         .withCatalogName("kamc_calc")
+         .withProcedureName("SetEnv");
+      jdbcCall.execute(30, 360);*/
+         
+      SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+         .withCatalogName("kamc_calc")
+         .withFunctionName("CalcNstoPaym");
+      
+      jdbcCall.executeFunction(Long.class, proto.getId());
+   }
+
+   @Transactional
+   public void importRentSheet(RentSheet sheet, List<String> ignored, List<String> created) {
+      I3Subject sbj = sbjUtils.getSbj(sheet.inn, sheet.subject);
+      if (sbj == null) {
+         logger.error("Не удалось найти субъекта: {}", sheet.subject);
          return;
+      }
 
       //logger.info("Импорт [{}]", sheet.cntrNum);
 
@@ -196,8 +277,8 @@ public class ImportService {
       sbjContractor.setSbcIsFree("F");
       contractorRepo.save(sbjContractor);
 
-      I3LptyProtocol proto = createProtocol(sheet, lpty, sbjBst.getId(), sbj);
-      createPayments(proto, sheet);
+      I3LptyProtocol proto = createLptyProtocol(sheet, lpty, sbjBst.getId(), sbj);
+      createLptyPayments(proto, sheet);
 
       for (PropertyInfo property: sheet.items) {
          Long objId = getObjId(property, sbj.getId());
@@ -277,7 +358,7 @@ public class ImportService {
          return objIdByCadnum;
       }
       
-      Set<Long> sbjObjIds = sbjSearch.getSbjObjects(sbjId);
+      Set<Long> sbjObjIds = sbjUtils.getSbjObjects(sbjId);
 
       Long objIdByCost = objSearch.findObjByCost(property, sbjObjIds);
       if (objIdByCost > 0)
@@ -307,7 +388,7 @@ public class ImportService {
       return -1L;
    }
 
-   private I3LptyProtocol createProtocol(RentSheet sheet, I3LptyComponent lpty, Long sbbId, I3Subject sbj) {
+   private I3LptyProtocol createLptyProtocol(RentSheet sheet, I3LptyComponent lpty, Long sbbId, I3Subject sbj) {
       SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
       I3LptyProtocol proto = new I3LptyProtocol();
       proto.setLpty(lpty);
@@ -342,7 +423,7 @@ public class ImportService {
       lptyProtoObjRepo.save(ptlObj);
    }
 
-   private void createPayments(I3LptyProtocol proto, RentSheet sheet) {
+   private void createLptyPayments(I3LptyProtocol proto, RentSheet sheet) {
       SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
       for (int month = 0; month < 12; month++) {
@@ -366,5 +447,73 @@ public class ImportService {
          return val;
       }
    }
+
+   private I3NstoProtocol createNstoProtocol(NtoItem item, I3NstoComponent nsto, Long sbbId, Long sbjId, Long objId) {
+      I3NstoProtocol proto = new I3NstoProtocol();
+      SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+      proto.setNsoNstoComponentId(nsto.getId());
+
+      Date yearBegin, yearEnd;
+      try {
+         yearBegin = sdf.parse("01.01.2019");
+         yearEnd = sdf.parse("31.12.2019");
+      } catch (ParseException e) {
+         throw new RuntimeException(e);
+      }
+      
+      proto.setPtlCreateDate(yearBegin);
+      proto.setPtlStartDate(item.getPayStartDate().before(yearBegin) ? yearBegin : item.getPayStartDate());
+      proto.setPtlEndDate(item.getEndDate().after(yearEnd) ? yearEnd : item.getEndDate());
+      
+      proto.setPtlPeriod(item.getDaysYear().longValue());
+      long days = 1 + TimeUnit.DAYS.convert(proto.getPtlEndDate().getTime() - proto.getPtlStartDate().getTime(), TimeUnit.MILLISECONDS);
+      if (item.getDaysYear().longValue() != days) {
+         logger.warn("Число дней в протоколе отличается. В файле: {}, подсчитано: {}", item.getDaysYear().longValue(), days);
+      }
+      //proto.setPtlPeriod(days);
+
+      proto.setSbbSbjBstId(sbbId);
+      proto.setSbjSubjectId(sbjId);
+      proto.setObjObjectId(objId);
+      
+      proto.setPtlYearRate(item.getCostYear());
+      proto.setPtlArea(item.getArea());
+
+      proto.setPtlDescription(String.format("%.2f", item.getCostYear()).replace(",", "."));
+
+      I3PaymMethodics ntoMeth = paymMethRepo.findByPamCode("NSTO_AREA");
+      proto.setPtlMethodics(ntoMeth.getId());
+
+      nstoProtoRepo.save(proto);
+
+      List<I3CountCoeff> coeffs = coeffRepo.findByCocModuleAndCocUse("NSTO", "T");
+      for (I3CountCoeff coeff: coeffs) {
+         I3NstoKoef koef = new I3NstoKoef();
+         koef.setCocCountCoeffId(coeff.getId());
+         koef.setKofCode(coeff.getCocCode());
+         koef.setKofUse("T");
+         koef.setPtlProtocolId(proto.getId());
+
+         koef.setKofValue(coeff.getCocDefault());
+         
+         switch (coeff.getCocCode()) {
+            case "Сср":
+               if (item.getCadCostAVG() != null) koef.setKofValue(item.getCadCostAVG());
+               break;
+            case "Ктип":
+               if (item.getKioskType() != null) koef.setKofValue(item.getKioskType().doubleValue());
+               break;
+            case "Кi":
+               if (item.getCoeff() != null) koef.setKofValue(item.getCoeff());
+               break;
+         }
+
+         nstoKoefRepo.save(koef);
+      }
+
+      return proto;
+   }      
   
+   private void createNstoPayments(I3NstoProtocol proto, NtoItem item) {
+   }
 }

@@ -15,6 +15,7 @@ public class NtoBook extends BookInfo {
    }
 
    protected NtoSheet importSheet(Sheet sheet) {
-      return new NtoSheet(sheet);
+      NtoSheet ntoSheet = new NtoSheet(sheet);
+      return (ntoSheet.items == null || ntoSheet.items.size() == 0) ? null : ntoSheet;
    }
 }

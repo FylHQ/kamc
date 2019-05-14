@@ -120,7 +120,7 @@ export default {
             checkboxSelection: true, headerCheckboxSelection: true},
          {headerName: "Карточка", field: "json", width: 100, 
             cellRendererFramework: 'InfoComponent'},
-         {headerName: 'Дата заключения', field: 'cntrConfirmDate', width: 120, 
+         {headerName: 'Дата заключения', field: 'confirmDate', width: 120, 
             valueFormatter: this.dateFormatter},
          {headerName: 'Место размещения', field: 'placement', resizable: true, 
             width: 250, tooltipField: 'placement'},

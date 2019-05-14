@@ -1,5 +1,6 @@
 package ru.devag.kamc;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 
 import java.text.SimpleDateFormat;
@@ -41,13 +42,13 @@ public class ImportUtils {
    public static String getString(Cell cell) {
       switch (cell.getCellType()) {
          case STRING:
-            return cell.getStringCellValue();
+            return cell.getStringCellValue().trim();
          case NUMERIC:
-            return String.valueOf(cell.getNumericCellValue());
+            return new BigDecimal(cell.getNumericCellValue()).toPlainString();
          case FORMULA:
             switch(cell.getCachedFormulaResultType()) {
                case STRING:
-                  return cell.getRichStringCellValue().getString();
+                  return cell.getRichStringCellValue().getString().trim();
                default:
                   logger.debug("Unsupported string cell formula type: {}", cell.getCellType());
                   return null;      

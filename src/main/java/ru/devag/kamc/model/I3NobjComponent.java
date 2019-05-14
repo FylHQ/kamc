@@ -13,8 +13,9 @@ public class I3NobjComponent {
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
    private Long id;
 
-   @Column(name = "i3obj_object_id", nullable = false)
-   private Long objObjectId;
+   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3obj_object_id", nullable = false)
+   private I3Object object;
 
    @Column(name = "i3nob_actual_number")
    private String nobActualNumber;
@@ -55,12 +56,12 @@ public class I3NobjComponent {
       this.id = id;
    }
 
-   public Long getObjObjectId() {
-      return objObjectId;
+   public I3Object getObject() {
+      return object;
    }
 
-   public void setObjObjectId(Long objObjectId) {
-      this.objObjectId = objObjectId;
+   public void setObject(I3Object object) {
+      this.object = object;
    }
 
    public String getNobActualNumber() {

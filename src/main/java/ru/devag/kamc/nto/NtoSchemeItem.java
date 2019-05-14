@@ -6,16 +6,13 @@ public class NtoSchemeItem {
    @CellIndex("№ п/п")
    Integer num;
 
-   @CellIndex("Старая строка")
-   Integer oldNum;
-
    @CellIndex("Место размещения")
    String placement;
    
    @CellIndex("Площадь земельного участка")
    Double prclArea;
    
-   @CellIndex("Площадь  объекта")
+   @CellIndex("Площадьобъекта")
    Double area;
 
    @CellIndex("Специализация")
@@ -27,8 +24,8 @@ public class NtoSchemeItem {
    @CellIndex("Период размещения")
    String period;
    
-   @CellIndex("Фамилия")
-   String surname;
+   @CellIndex("Примечание")
+   String notes;
 
    /**
     * @return the num
@@ -42,20 +39,6 @@ public class NtoSchemeItem {
     */
    public void setNum(Integer num) {
       this.num = num;
-   }
-
-   /**
-    * @return the oldNum
-    */
-   public Integer getOldNum() {
-      return oldNum;
-   }
-
-   /**
-    * @param oldNum the oldNum to set
-    */
-   public void setOldNum(Integer oldNum) {
-      this.oldNum = oldNum;
    }
 
    /**
@@ -143,18 +126,20 @@ public class NtoSchemeItem {
    }
 
    /**
-    * @return the surname
+    * @return the notes
     */
-   public String getSurname() {
-      return surname;
+   public String getNotes() {
+      return notes;
    }
 
    /**
-    * @param surname the surname to set
+    * @param notes the notes to set
     */
-   public void setSurname(String surname) {
-      this.surname = surname;
+   public void setNotes(String notes) {
+      this.notes = notes;
    }
+
+   
       
    
 }

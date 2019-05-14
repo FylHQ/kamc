@@ -13,8 +13,6 @@ public class NtoSchemeSheet extends SheetInfo<NtoSchemeItem> {
 
    @Override
    public boolean onAdd(NtoSchemeItem item, int rowNum) {
-      return item.num != null || item.oldNum != null || 
-         !StringUtils.isEmpty(item.placement) || 
-         item.area != null || item.prclArea != null;
+      return item.num != null;
    }
 }

@@ -1,13 +1,23 @@
-package ru.devag.kamc.rent;
+package ru.devag.kamc;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Service;
 
 import ru.devag.kamc.model.*;
+import ru.devag.kamc.nto.*;
+import ru.devag.kamc.rent.*;
 import ru.devag.kamc.repo.*;
 
 @Service
 public class ObjectCreate {
+   private static Logger logger = LoggerFactory.getLogger(ObjectCreate.class);
+
    @Autowired
    I3ObjectRepository objRepo;
 
@@ -31,6 +41,9 @@ public class ObjectCreate {
 
    @Autowired
    I3ExtAttributeValueRepository extvRepo;
+
+   @Autowired
+   I3NobjComponentRepository nobjRepo;
 
    public I3Object createObj(RentSheet sheet, PropertyInfo property, String catCode, boolean addAddress) {
       I3Object obj = new I3Object();
@@ -110,4 +123,59 @@ public class ObjectCreate {
 
       return obj;
    }
+
+   public I3ClassifierValue getOrCreateClf(String val, String parentCode) {
+      I3ClassifierValue clfParent = clfRepo.findByCfvCode(parentCode);
+      List<I3ClassifierValue> clfs = clfRepo.findByCfvValueAndCfvParentId(val, clfParent.getId());
+      if (clfs.size() > 0) {
+         return clfs.get(0);
+      }
+      
+      I3ClassifierValue clf = new I3ClassifierValue();
+      clf.setCfvValue(val);
+      clf.setCfvCode(parentCode + "_AUTO_" + RandomStringUtils.random(4, false, true));
+      clf.setCfvParentId(clfParent.getId());
+      clfRepo.save(clf);
+
+      logger.warn("A new classifier has been created: {} ({})", val, parentCode);
+
+      return clf;
+   }
+
+   public I3NobjComponent getOrCreateNobj(NtoSchemeItem item, NtoItem ntoItem) {
+      Optional<I3NobjComponent> maybeNobj = nobjRepo.findByNobActualNumber(String.valueOf(item.getNum()));
+      if (maybeNobj.isPresent()) {
+         return maybeNobj.get();
+      }
+
+      I3Object obj = new I3Object();
+      obj.setCatCategoryId(catRepo.findByCatCode("NOBJ").getId());
+
+      obj.setStsStatusId(1L);
+      obj.setObjNumber("XLSX_2019_NOBJ_" + item.getNum());
+
+      objRepo.save(obj);
+
+      I3NobjComponent nobj = new I3NobjComponent();
+      nobj.setObject(obj);
+      nobj.setNobActualNumber(String.valueOf(item.getNum()));
+      nobj.setNobPlacement(item.getPlacement());
+      nobj.setNobArea(item.getArea());
+      nobj.setNobPrclArea(item.getPrclArea());
+      
+      //из договора
+      nobj.setNobAvgUnitCost(ntoItem.getCadCostAVG());
+      nobj.setNobCadBlock(ntoItem.getCadBlock().longValue());
+
+      I3ClassifierValue clfType = getOrCreateClf(item.getObjType().replace("«", "\"").replace("»", "\""), "CLF_NTO_TYPE");
+      I3ClassifierValue clfSpec = getOrCreateClf(item.getSpecType(), "CLF_NTO_SPEC_TYPE");
+      
+      nobj.setNobCfvTypeId(clfType.getId());
+      nobj.setNobCfvSpecId(clfSpec.getId());
+
+      nobjRepo.save(nobj);
+
+      return nobj;
+   }
+
 }

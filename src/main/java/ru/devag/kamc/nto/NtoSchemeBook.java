@@ -15,9 +15,8 @@ public class NtoSchemeBook extends BookInfo {
    }
 
    protected NtoSchemeSheet importSheet(Sheet sheet) {
-      NtoSchemeSheet ntoSchemeSheet = new NtoSchemeSheet(sheet);
-      return ntoSchemeSheet;
+      NtoSchemeSheet ntoSheet = new NtoSchemeSheet(sheet);
+      return (ntoSheet.items == null || ntoSheet.items.size() == 0) ? 
+         null : ntoSheet;
    }
-
-   
 }

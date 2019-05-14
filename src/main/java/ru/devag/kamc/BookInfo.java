@@ -20,7 +20,9 @@ public abstract class BookInfo {
       
       while(sheetIt.hasNext()) {
          Sheet sheet = sheetIt.next();
-         sheets.add(importSheet(sheet));
+         SheetInfo<?> sheetInfo = importSheet(sheet);
+         if (sheetInfo != null)
+            sheets.add(sheetInfo);
       }
    }
 

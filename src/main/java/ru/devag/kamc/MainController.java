@@ -201,7 +201,7 @@ public class MainController {
                 } else {
                     try {
                         List<String> created = new ArrayList<>();
-                        importSvc.importSheet(sheet, ignored, created);
+                        importSvc.importRentSheet(sheet, ignored, created);
                         logger.info("Импорт [{}]: OK", sheet.cntrNum);
                         if (created.size() > 0) {
                             logger.warn("Создано новых [{}]: {}", sheet.cntrNum, created.size());
@@ -238,11 +238,22 @@ public class MainController {
 
         for (NtoItem item: ((NtoSheet)ntoBook.getSheets().get(0)).items) {
             if (codes.containsKey(String.valueOf(item.getRowId()))) {
+                I3NstoProtocol proto;
                 try {
-                    importSvc.importNto(item, scheme, codes, ignored, created);
+                    proto = importSvc.importNtoItem(item, scheme, codes, ignored, created);
                 } catch (Exception e) {
+                    proto = null;
                     logger.error("Ошибка импорта [{}]: {}", item.getCntrNum(), e.getMessage());
                 }
+
+                if (proto != null) {
+                    try {
+                        importSvc.calcNstoProto(proto);
+                    } catch (Exception e) {
+                        logger.error("Договор и протокол созданы, но произошла ошибка при расчете [{}]: {}", item.getCntrNum(), e.getMessage());
+                    }
+                }
+
             }
         }
 

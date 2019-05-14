@@ -38,7 +38,7 @@ public abstract class SheetInfo<T> {
    }
 
    public Map<CellIndex, Field> getCellIndexes() {
-      Map<CellIndex, Field> cellIndexes = new HashMap<>();
+      Map<CellIndex, Field> cellIndexes = new LinkedHashMap<>();
       for (Field field : itemClass.getDeclaredFields()) {
          if (field.isAnnotationPresent(CellIndex.class)) {
             CellIndex ci = field.getAnnotation(CellIndex.class);
@@ -71,11 +71,13 @@ public abstract class SheetInfo<T> {
          while (cellIt.hasNext()) {
             Cell cell = cellIt.next();
             if (row.getRowNum() < headerSize) {
-               cellIndexes.forEach((ci, field) -> {
-                  if (cell.toString().contains(ci.value())) {
-                     indexes.put(cell.getColumnIndex() + ci.offset(), ci);
-                  }
-               });
+               if (!indexes.containsKey(cell.getColumnIndex())) {
+                  cellIndexes.forEach((ci, field) -> {
+                     if (cell.toString().contains(ci.value())) {
+                        indexes.putIfAbsent(cell.getColumnIndex() + ci.offset(), ci);
+                     }
+                  });
+               }
             } else {
                CellIndex ci = indexes.get(cell.getColumnIndex());
                if (ci != null) {
