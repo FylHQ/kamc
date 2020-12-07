@@ -36,7 +36,11 @@ import ru.devag.kamc.log.*;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.rent.*;
 import ru.devag.kamc.nto.*;
+import ru.devag.kamc.prclcost.PrclCostBook;
+import ru.devag.kamc.prclcost.PrclCostItem;
+import ru.devag.kamc.prclcost.PrclCostSheet;
 import ru.devag.kamc.repo.*;
+import ru.devag.kamc.smbusiness.*;
 
 @RestController
 public class MainController {
@@ -151,6 +155,12 @@ public class MainController {
         } else if (sourceType.equals("nto_scheme")) {
             book = new NtoSchemeBook(workbook);
             importSvc.put(sourceType, book);
+        } else if (sourceType.equals("smbusiness")) {
+            book = new SmbBook(workbook);
+            importSvc.put(sourceType, book);
+        } else if (sourceType.equals("prclcost")) {
+            book = new PrclCostBook(workbook);
+            importSvc.put(sourceType, book);
         } else {
             logger.error("Unsupported source type: {}", sourceType);
             book = null;
@@ -260,12 +270,76 @@ public class MainController {
         return "OK";
     }
 
+    private String importSmallBusiness(Map<String, Integer> codes, Map<String, Object> settings) {
+        BookInfo smbBook = importSvc.get("smbusiness");
+
+        if (smbBook == null) {
+            return "Книга не загружена";
+        }
+
+        List<String> ignored = new ArrayList<>();
+        List<String> created = new ArrayList<>();
+
+        importSvc.initSmb(settings);
+
+        for (SheetInfo<?> sheet: smbBook.getSheets()) {
+            SmbSheet smbSheet =(SmbSheet)sheet;
+            if (codes.containsKey(smbSheet.getSheetName())) {
+                logger.info("Лист: {}", smbSheet.getSheetName());
+                for (SmbItem item: smbSheet.items) {
+                    try {
+                        importSvc.importSmbItem(item, codes, ignored, created);
+                    } catch (Exception e) {
+                        logger.error("Ошибка импорта [{}]: {}", item.getPos(), e.getMessage());
+                    }
+                }
+            }
+        }
+
+        return "OK";
+    }    
+
+    private String importPrclCost(Map<String, Integer> codes, Map<String, Object> settings) {
+        BookInfo prclCostBook = importSvc.get("prclcost");
+
+        if (prclCostBook == null) {
+            return "Книга не загружена";
+        }
+
+        importSvc.initPrclCost(settings);
+
+        List<String> notFound = new ArrayList<>();
+        List<String> created = new ArrayList<>();
+
+        for (SheetInfo<?> sheet: prclCostBook.getSheets()) {
+            PrclCostSheet prclCostSheet =(PrclCostSheet)sheet;
+            if (codes.containsKey(prclCostSheet.getSheetName())) {
+                logger.info("Лист: {}", prclCostSheet.getSheetName());
+                for (PrclCostItem item: prclCostSheet.items) {
+                    try {
+                        importSvc.importPrclCostItem(item, codes, notFound, created);
+                    } catch (Exception e) {
+                        logger.error("Ошибка импорта [{}]: {}", item.getCadnum(), e.getMessage());
+                    }
+                }
+            }
+        }
+        logger.warn("Не найдено кадастровых номеров: {}", notFound.size());
+        logger.warn("Импортировано: {}", created.size());
+
+        return "OK";
+    }    
+    
     @PostMapping("/import")
     public String importBook(@RequestBody ImportRequest ir) throws InterruptedException {
         if (ir.importCode.equals("rent")) {
             return importRent(ir.codes, ir.settings);
         } else if (ir.importCode.equals("nto")) {
             return importNto(ir.codes, ir.settings);
+        } else if (ir.importCode.equals("smbusiness")) {
+            return importSmallBusiness(ir.codes, ir.settings);
+        } else if (ir.importCode.equals("prclcost")) {
+            return importPrclCost(ir.codes, ir.settings);
         } else {
             return "Неизвестный тип импорта: " + ir.importCode;
         }

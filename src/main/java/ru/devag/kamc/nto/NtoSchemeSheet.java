@@ -1,8 +1,6 @@
 package ru.devag.kamc.nto;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.commons.lang3.StringUtils;
-
 import ru.devag.kamc.SheetInfo;
 
 public class NtoSchemeSheet extends SheetInfo<NtoSchemeItem> {

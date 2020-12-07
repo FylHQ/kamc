@@ -1,8 +1,10 @@
 package ru.devag.kamc.model;
 
 import javax.persistence.*;
+import java.util.Date;
 
-@Entity(name="i3_sbj_contractor")
+@Entity
+@Table(name="i3_sbj_contractor")
 public class I3SbjContractor {
 
    @Column(name = "i3sbc_sbj_contractor_id", nullable = false)
@@ -34,6 +36,15 @@ public class I3SbjContractor {
 
    @Column(name = "i3sbc_okved")
    private String sbcOkved;
+
+   @Column(name = "i3sbc_description")
+   private String sbcDescription;
+
+   @Column(name = "i3sbc_small_business_type")
+   private String sbcSmallBusinessType;
+
+   @Column(name = "i3sbc_small_business_reg_date")
+   private Date sbcSmallBusinessRegDate;
 
 
    public Long getId() {
@@ -106,6 +117,30 @@ public class I3SbjContractor {
 
    public void setSbcOkved(String sbcOkved) {
       this.sbcOkved = sbcOkved;
+   }
+
+   public String getSbcDescription() {
+      return sbcDescription;
+   }
+
+   public void setSbcDescription(String sbcDescription) {
+      this.sbcDescription = sbcDescription;
+   }
+
+   public String getSbcSmallBusinessType() {
+      return sbcSmallBusinessType;
+   }
+
+   public void setSbcSmallBusinessType(String sbcSmallBusinessType) {
+      this.sbcSmallBusinessType = sbcSmallBusinessType;
+   }
+
+   public Date getSbcSmallBusinessRegDate() {
+      return sbcSmallBusinessRegDate;
+   }
+
+   public void setSbcSmallBusinessRegDate(Date sbcSmallBusinessRegDate) {
+      this.sbcSmallBusinessRegDate = sbcSmallBusinessRegDate;
    }
 
 }

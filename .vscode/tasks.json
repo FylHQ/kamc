@@ -14,7 +14,7 @@
             "command": "gradle build"
         },
         {
-            "label": "gradle boot run",
+            "label": "gradle boot run --args='--server=localhost --sid=kamc'",
             "type": "shell",
             "command": "gradle bootRun"
         },

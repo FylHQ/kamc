@@ -3,7 +3,8 @@ package ru.devag.kamc.model;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name="i3_pers_component")
+@Entity
+@Table(name="i3_pers_component")
 public class I3PersComponent {
 
    @Column(name = "i3prs_prs_component_id", nullable = false)
@@ -47,14 +48,6 @@ public class I3PersComponent {
 
    public void setId(Long id) {
       this.id = id;
-   }
-
-   public I3Subject getSbj() {
-      return sbj;
-   }
-
-   public void setSbj(I3Subject sbj) {
-      this.sbj = sbj;
    }
 
    public String getPrsFirstName() {
@@ -119,6 +112,14 @@ public class I3PersComponent {
 
    public void setPrsSnils(Double prsSnils) {
       this.prsSnils = prsSnils;
+   }
+
+   public I3Subject getSbj() {
+      return sbj;
+   }
+
+   public void setSbj(I3Subject sbj) {
+      this.sbj = sbj;
    }
 
 }

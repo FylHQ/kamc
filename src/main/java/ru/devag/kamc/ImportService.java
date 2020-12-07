@@ -1,33 +1,33 @@
 package ru.devag.kamc;
 
 import javax.persistence.EntityManager;
-import javax.persistence.ParameterMode;
 import javax.persistence.PersistenceContext;
-import javax.persistence.StoredProcedureQuery;
+import javax.persistence.Tuple;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ru.devag.kamc.rent.*;
 import ru.devag.kamc.nto.*;
+import ru.devag.kamc.prclcost.PrclCostItem;
 import ru.devag.kamc.rent.PropertyInfo.PropType;
 import ru.devag.kamc.model.*;
 import ru.devag.kamc.repo.*;
+import ru.devag.kamc.smbusiness.*;
 
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class ImportService {
@@ -113,6 +113,15 @@ public class ImportService {
    @Autowired
    I3NstoKoefRepository nstoKoefRepo;
 
+   @Autowired
+   I3CntrComponentRepository cntrRepo;
+
+   @Autowired
+   I3PaymComponentRepository paymRepo;
+
+   @Autowired
+   I3PrclCostRepository prclCostRepo;
+
    private ConcurrentHashMap<String, BookInfo> cache = new ConcurrentHashMap<>();
 
    private Long depSbjId = -1L;
@@ -125,6 +134,13 @@ public class ImportService {
    boolean createNetw = false;
    boolean ignoreAll = false;
    boolean enableAddressSearch = true;
+
+   boolean smbEnableCntr = true;
+   boolean smbEnablePaym = true;
+
+   int prclCostYear;
+   String prclCostDescription;
+
 
    public void initRent(Map<String, Object> settings) {
       this.ignoreAll = (Boolean)settings.getOrDefault("ignoreAll", false);
@@ -153,6 +169,17 @@ public class ImportService {
 
    public void initNto(Map<String, Object> settings) {
    }
+   
+   public void initSmb(Map<String, Object> settings) {
+      this.smbEnableCntr = (Boolean)settings.getOrDefault("enableCntr", true);
+      this.smbEnablePaym = (Boolean)settings.getOrDefault("enablePaym", true);
+   }
+
+   public void initPrclCost(Map<String, Object> settings) {
+      this.prclCostYear = (int)settings.getOrDefault("year", Year.now().getValue() + 1);
+      this.prclCostDescription = (String)settings.getOrDefault("description", null);
+      objSearch.initPrclCache();
+   }
 
    public void put(String code, BookInfo bookInfo) {
       cache.put(code, bookInfo);
@@ -166,7 +193,7 @@ public class ImportService {
    public I3NstoProtocol importNtoItem(NtoItem item, NtoSchemeSheet schemeSheet, Map<String, Integer> cntrNums, List<String> ignored, List<String> created) {
       logger.info("Договор: {}", item.getCntrNum());
 
-      I3Subject sbj = sbjUtils.getSbj(item.getInn(), item.getSbj());
+      I3Subject sbj = sbjUtils.getSbj(item.getInn(), null, item.getSbj());
       if (sbj == null) {
          sbj = sbjUtils.createSbj(item);
          logger.warn("Новый субъект: {}", item.getSbj());
@@ -234,7 +261,7 @@ public class ImportService {
 
    @Transactional
    public void importRentSheet(RentSheet sheet, List<String> ignored, List<String> created) {
-      I3Subject sbj = sbjUtils.getSbj(sheet.inn, sheet.subject);
+      I3Subject sbj = sbjUtils.getSbj(sheet.inn, null, sheet.subject);
       if (sbj == null) {
          logger.error("Не удалось найти субъекта: {}", sheet.subject);
          return;
@@ -350,6 +377,106 @@ public class ImportService {
          }
       }
 
+   }
+
+   @Transactional
+   public void importSmbItem(SmbItem item, Map<String, Integer> sheetCodes, List<String> ignored, List<String> created) {
+      logger.info("№ п/п: {}, {}", item.getPos(), item.getSubject());
+
+      I3Subject sbj = sbjUtils.getSbj(item.getInn(), item.getOgrn(), null); //ищем только по ИНН и ОГРН, без описания
+      if (sbj == null) {
+         logger.warn("Cубъект [{}] не найден ни по ИНН, ни по ОГРН: {} / {}", item.getSubject(), item.getInn(), item.getOgrn());
+      } else {
+         if (smbEnableCntr) {
+            List<Tuple> sbjBsts = cntrRepo.findSbbBySbjId(sbj.getId());
+            if (sbjBsts.size() > 0) {
+               StringBuilder sb = new StringBuilder();
+               for (Tuple entry: sbjBsts) {
+                  I3SbjBst sbb = entry.get(0, I3SbjBst.class);
+                  I3CntrComponent cntr = entry.get(1, I3CntrComponent.class);
+                  
+                  if (sb.length() > 0) {
+                     sb.append(", ");
+                  }
+                  sb.append(cntr.getCnrNumber());
+                  List<I3SbjContractor> contractors = contractorRepo.findBySbbSbjBstId(sbb.getId());
+                  I3SbjContractor contractor;
+                  if (contractors.size() == 0) {
+                     sb.append("(+)");
+                     contractor = new I3SbjContractor();
+                     contractor.setSbbSbjBstId(sbb.getId());
+                     contractor.setSbcBusIsPers("F");
+                     contractor.setSbcIsFree("F");
+                  } else {
+                     contractor = contractors.get(0);
+                  }
+                  contractor.setSbcSmallBusinessType(getSmbCode(item.getCategory()));
+                  contractor.setSbcSmallBusinessRegDate(item.getRegDate());
+                  contractorRepo.save(contractor);
+               }
+               logger.warn("Договоры: {}", sb);
+            }
+         }
+
+         if (smbEnablePaym) {
+            List<I3PaymComponent> payms = paymRepo.findBySbjId(sbj.getId());
+            Map<String, Integer> cntrNums = new HashMap<>();
+            Map<String, Integer> cntrSkippedNums = new HashMap<>();
+            for (I3PaymComponent paym: payms) {
+               List<I3CntrComponent> cntrs = cntrRepo.findByPaymBstId(paym.getBst().getId());
+               if (cntrs.size() > 0) {
+                  String cntrNum = cntrs.get(0).getCnrNumber();
+                  if (!paym.getBst().getBstDate().before(item.getRegDate())) {
+                     paym.setPacSbjSmBusinessType(getSmbCode(item.getCategory()));
+                     paym.setPacSbjSmBusinessRegDate(item.getRegDate());
+                     paymRepo.save(paym);
+   
+                     cntrNums.compute(cntrNum, (k, v) -> v == null ? 1 : v + 1);
+                  } else {
+                     cntrSkippedNums.compute(cntrNum, (k, v) -> v == null ? 1 : v + 1);
+                  }
+               }
+            }
+            
+            if (cntrNums.size() > 0) {
+               logger.warn("Протоколы: {}", cntrNums.entrySet().stream().map(entry -> entry.getKey() + "(" + entry.getValue() + ")").collect(Collectors.joining(", ")));
+            }
+            if (cntrSkippedNums.size() > 0) {
+               logger.warn("Протоколы пропущены: {}", cntrSkippedNums.entrySet().stream().map(entry -> entry.getKey() + "(" + entry.getValue() + ")").collect(Collectors.joining(", ")));
+            }
+            
+         }
+      }
+   }
+
+   @Transactional
+   public void importPrclCostItem(PrclCostItem item, Map<String, Integer> sheetCodes, List<String> notFound, List<String> created) {
+      Double cadCost = ImportUtils.getNumeric(item.getCadcost());
+      List<Long> prclIds = objSearch.getPrclIdsByCadnumAndCostYear(item.getCadnum().trim(), prclCostYear);
+      if (prclIds == null || prclIds.size() == 0) {
+         notFound.add(item.getCadnum());
+      } else {
+         created.add(item.getCadnum());
+         for (Long prclId: prclIds) {
+            I3PrclCost prclCost = new I3PrclCost();
+            prclCost.setPrcPrclComponentId(prclId);
+            prclCost.setPcoCadCost(cadCost);
+            prclCost.setPcoDescription(prclCostDescription);
+            prclCost.setPcoDate(new GregorianCalendar(prclCostYear, 0, 1).getTime());
+            prclCostRepo.save(prclCost);
+         }
+      }
+   }
+   
+   private String getSmbCode(String category) {
+      switch (category) {
+         case "Микропредприятие":
+            return "MICRO";
+         case "Среднее предприятие":
+            return "MEDIUM";
+         default:
+            return "SMALL";
+      }
    }
 
    private Long getObjId(PropertyInfo property, Long sbjId) {
@@ -513,7 +640,4 @@ public class ImportService {
 
       return proto;
    }      
-  
-   private void createNstoPayments(I3NstoProtocol proto, NtoItem item) {
-   }
 }

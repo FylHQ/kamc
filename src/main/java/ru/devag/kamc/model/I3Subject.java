@@ -4,7 +4,8 @@ import javax.persistence.*;
 import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Entity(name="i3_subject")
+@Entity
+@Table(name="i3_subject")
 public class I3Subject {
 
    @Column(name = "i3sbj_subject_id", nullable = false)

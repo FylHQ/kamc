@@ -8,6 +8,7 @@ import static ru.devag.kamc.ImportUtils.*;
 import java.beans.Statement;
 import java.util.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -61,8 +62,9 @@ public abstract class SheetInfo<T> {
 
          T item;
          try {
-            item = this.itemClass.newInstance();
-         } catch (InstantiationException | IllegalAccessException e) {
+            item = this.itemClass.getDeclaredConstructor().newInstance();
+         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+               | NoSuchMethodException | SecurityException e) {
             logger.error("Cannot instantiate an item: {}", e);
             return;
          }
@@ -107,7 +109,7 @@ public abstract class SheetInfo<T> {
             }
          }
 
-         if (onAdd(item, row.getRowNum())) {
+         if (row.getRowNum() >= headerSize && onAdd(item, row.getRowNum())) {
             items.add(item);
          }
       }

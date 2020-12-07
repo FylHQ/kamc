@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ public class ObjectSearch {
    @Autowired
    I3NetwComponentRepository netwRepo;
 
+   @Autowired
+   I3PrclComponentRepository prclRepo;
+
    public int threshFull; 
    public int threshShort;
 
@@ -42,6 +46,9 @@ public class ObjectSearch {
 
    Map<String, List<Long>> aprmAddrObjIds = null;
    Map<String, List<Long>> netwAddrObjIds = null;
+
+   //cadNum -> [{id, year},]
+   Map<String, List<Pair<Long, Integer>>> allPrclIdAndCostYearByCadnum = null;
 
    public void init(int threshFull) {
       this.threshFull = threshFull;
@@ -79,6 +86,15 @@ public class ObjectSearch {
 
       allCost = null;
       allLength = null;
+   }
+
+   public void initPrclCache() {
+      allPrclIdAndCostYearByCadnum = new HashMap<>();
+      prclRepo.findAllWithLastCostYear().forEach(tuple -> {
+         allPrclIdAndCostYearByCadnum.computeIfAbsent(tuple.get(1, String.class).trim(), k -> new ArrayList<>())
+            .add(Pair.of(tuple.get(0, BigDecimal.class).longValue(), 
+            (tuple.get(2, BigDecimal.class) == null ? null : tuple.get(2, BigDecimal.class).intValue())));
+      });
    }
 
    private void fillAllNames() {
@@ -292,6 +308,18 @@ public class ObjectSearch {
       }
 
       return -1L;
+   }
+
+   public List<Long> getPrclIdsByCadnumAndCostYear(String cadNum, int maxCostYear) {
+      List<Pair<Long, Integer>> idsByCadnum = allPrclIdAndCostYearByCadnum.get(cadNum);
+      if (idsByCadnum == null) {
+         return null;
+      }
+      return idsByCadnum.stream().filter(pair -> 
+            maxCostYear == 0 ||
+            pair.getRight() == null ||
+            pair.getRight() < maxCostYear)
+         .map(item -> item.getLeft()).collect(Collectors.toList());
    }
 
    private Long getClosestByNameTwoPhase(List<Long> ids, String objName) {

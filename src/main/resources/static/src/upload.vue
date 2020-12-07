@@ -33,12 +33,14 @@ export default {
             formData.append('xlsx', files[0])
             formData.append('sourceType', self.sourceType)
 
+            self.$emit("upload-begin")
             axios.post('/upload', formData)
                .then(result=>{
                   self.$emit("upload-success", result.data)
                })
                .catch(error => {
                   console.error(error)
+                  self.$emit("upload-error", error)
                })
 
          }

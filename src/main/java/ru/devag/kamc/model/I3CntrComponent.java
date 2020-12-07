@@ -3,7 +3,8 @@ package ru.devag.kamc.model;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name="i3_cntr_component")
+@Entity
+@Table(name="i3_cntr_component")
 public class I3CntrComponent {
 
    @Column(name = "i3cnr_cntr_component_id", nullable = false)
@@ -12,8 +13,9 @@ public class I3CntrComponent {
    @SequenceGenerator(sequenceName = "i3_allocateid", allocationSize = 1, name = "I3_SEQ")
    private Long cnrCntrComponentId;
 
-   @Column(name = "i3bst_basement_id", nullable = false)
-   private Long bstBasementId;
+   @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+   @JoinColumn(name = "i3bst_basement_id", nullable = false)
+   private I3Basement bst;
 
    @Column(name = "i3cnr_number", nullable = false)
    private String cnrNumber;
@@ -100,14 +102,6 @@ public class I3CntrComponent {
 
    public void setCnrCntrComponentId(Long cnrCntrComponentId) {
       this.cnrCntrComponentId = cnrCntrComponentId;
-   }
-
-   public Long getBstBasementId() {
-      return bstBasementId;
-   }
-
-   public void setBstBasementId(Long bstBasementId) {
-      this.bstBasementId = bstBasementId;
    }
 
    public String getCnrNumber() {
@@ -318,4 +312,11 @@ public class I3CntrComponent {
       this.cnrSignDate = cnrSignDate;
    }
 
+   public I3Basement getBst() {
+      return bst;
+   }
+
+   public void setBst(I3Basement bst) {
+      this.bst = bst;
+   }
 }

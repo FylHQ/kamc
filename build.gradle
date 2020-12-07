@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '2.2.0.BUILD-SNAPSHOT'
+		springBootVersion = '2.4.0'
 	}
 	repositories {
 		mavenCentral()
@@ -18,7 +18,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'application'
 
 group = 'ru.devag'
-version = '0.2.3'
+version = '0.5.1'
 sourceCompatibility = '1.8'
 
 repositories {
@@ -50,13 +50,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	//compileOnly 'javax.persistence:persistence-api:1.0.2'
 
-	implementation 'org.apache.commons:commons-lang3:3.8.1'
+	implementation 'org.apache.commons:commons-lang3:3.11'
 	implementation 'com.oracle:ojdbc7:12.1.0.2'
-	implementation 'org.apache.poi:poi-ooxml:4.0.1'
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
-	implementation 'org.apache.commons:commons-text:1.6'
+	implementation 'org.apache.poi:poi-ooxml:4.1.2'
+	//implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+	implementation 'org.apache.commons:commons-text:1.9'
 	//runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	//testImplementation 'org.mockito:mockito-core:2.25.0'
-	//testImplementation 'junit:junit:4.13-beta-2'
+	testImplementation 'junit:junit:4.13.1'
 }

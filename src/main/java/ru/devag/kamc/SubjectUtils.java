@@ -73,20 +73,37 @@ public class SubjectUtils {
    }
 
 
-   public I3Subject getSbj(String inn, String description) {
-      List<I3CmpyComponent> cmpy = cmpyRepo.findByCmpInn(inn);
-      if (cmpy.size() > 0) {
-         return cmpy.get(0).getSbj();
+   public I3Subject getSbj(String inn, String ogrn, String description) {
+      List<I3CmpyComponent> cmpy;
+      List<I3PersComponent> pers;
+      
+      if (!StringUtils.isEmpty(inn)) {
+         cmpy = cmpyRepo.findByCmpInn(inn);
+         if (cmpy.size() > 0) {
+            return cmpy.get(0).getSbj();
+         }
+         pers = persRepo.findByPrsItn(inn);
+         if (pers.size() > 0) {
+            return pers.get(0).getSbj();
+         }
       }
 
-      List<I3PersComponent> pers = persRepo.findByPrsItn(inn);
-      if (pers.size() > 0) {
-         return pers.get(0).getSbj();
+      if (!StringUtils.isEmpty(ogrn)) {
+         cmpy = cmpyRepo.findByCmpOgrn(ogrn);
+         if (cmpy.size() > 0) {
+            return cmpy.get(0).getSbj();
+         }
+         pers = persRepo.findByCertOgrn(ogrn);
+         if (pers.size() > 0) {
+            return pers.get(0).getSbj();
+         }
       }
 
-      List<I3Subject> sbj = sbjRepo.findBySbjDescription(description);
-      if (sbj.size() > 0) {
-         return sbj.get(0);
+      if (!StringUtils.isEmpty(description)) {
+         List<I3Subject> sbj = sbjRepo.findBySbjDescription(description);
+         if (sbj.size() > 0) {
+            return sbj.get(0);
+         }
       }
       
       return null;

@@ -83,8 +83,8 @@ class Generator:
 
 
 
-#gen = Generator('i3/pandora@127.0.0.1/kamc')
-gen = Generator('i3/pandora@ora11g/kamc')
+gen = Generator('i3/pandora@127.0.0.1/kamc')
+#gen = Generator('i3/pandora@ora11g/kamc')
 
 #tables = ['I3_OBJECT', 'I3_CATEGORY', 'I3_RELATION', 'I3_BASEMENT']
 #tables = ['I3_CNTR_COMPONENT', 'I3_SUBJECT', 'I3_PERS_COMPONENT', 'I3_CMPY_COMPONENT']
@@ -106,9 +106,15 @@ gen = Generator('i3/pandora@ora11g/kamc')
 #tables = ['I3_OBJ_BST_TRAIT']
 #tables = ['I3_SBJ_COMMUNICATION']
 #tables = ['I3_PAYM_METHODICS']
-tables = ['I3_COUNT_COEFF']
+#tables = ['I3_COUNT_COEFF']
+#tables = ['I3_SBJ_CONTRACTOR']
+#tables = ['I3_CERT_COMPONENT']
+#tables = ['I3_PERS_COMPONENT']
+#tables = ['I3_PAYM_COMPONENT']
+#tables = ['I3_BST_BST']
+tables = ['I3_PRCL_COMPONENT', 'I3_PRCL_COST']
 #javaSrc = '/home/aklukvin/prj/kamc/web/src/main/java'
-javaSrc = 'C:/prj/KAMC/web/src/main/java'
+javaSrc = 'C:/prj_local/kamc/web/src/main/java'
 gen.store(tables, javaSrc)
 
 #parser = argparse.ArgumentParser("")

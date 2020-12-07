@@ -16,6 +16,12 @@
         Договоры НТО
       </v-tab>
       <v-tab :key="2">
+        СМСП
+      </v-tab>
+      <v-tab :key="3">
+        Кад. стоимость ЗУ
+      </v-tab>
+      <v-tab :key="4">
         Журнал
       </v-tab>
       </v-tabs>
@@ -29,6 +35,12 @@
         <nto></nto>
       </v-tab-item>
       <v-tab-item :key="2">
+        <smbusiness></smbusiness>
+      </v-tab-item>
+      <v-tab-item :key="3">
+        <prclcost></prclcost>
+      </v-tab-item>
+      <v-tab-item :key="4">
         <journal></journal>
       </v-tab-item>
     </v-tabs-items>
@@ -39,6 +51,8 @@
 import axios from 'axios'
 import rent from './rent.vue'
 import nto from './nto.vue'
+import smbusiness from './smbusiness.vue'
+import prclcost from './prclcost.vue'
 import journal from './journal.vue'
 
 export default {
@@ -46,13 +60,15 @@ export default {
   components: {
     'rent': rent,
     'nto': nto,
+    'smbusiness': smbusiness,
+    'prclcost': prclcost,
     'journal': journal
   },
   data () {
     return {
       msg: 'АИС "Имущество',
       objCount: null,
-      activeTab: 1
+      activeTab: 3
     }
   },
   mounted: function() {

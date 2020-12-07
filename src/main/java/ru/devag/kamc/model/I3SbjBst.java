@@ -2,7 +2,8 @@ package ru.devag.kamc.model;
 
 import javax.persistence.*;
 
-@Entity(name="i3_sbj_bst")
+@Entity
+@Table(name="i3_sbj_bst")
 public class I3SbjBst {
 
    @Column(name = "i3sbb_sbj_bst_id", nullable = false)

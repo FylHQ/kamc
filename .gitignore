@@ -34,4 +34,6 @@ package-lock.json
 /src/main/resources/static/dist/
 
 ojdbc*.jar
-*.xlsx
+/*.xlsx
+/*.doc
+/*.log
